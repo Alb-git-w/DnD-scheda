@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Scheda D&D">
+<meta name="theme-color" content="#1d1f24">
+<title>Scheda D&D 5e</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #1d1f24;
+    --surface: #2c313b;
+    --card: #363c48;
+    --border: rgba(255,255,255,0.09);
+    --text: #f0f2f5;
+    --text-dim: rgba(240,242,245,0.5);
+    --text-faint: rgba(240,242,245,0.32);
+    --green: #5cc095;
+    --green-bg: rgba(92,192,149,0.16);
+    --green-border: rgba(92,192,149,0.45);
+    --red: #ec9387;
+    --red-bg: rgba(232,138,126,0.14);
+    --red-border: rgba(232,138,126,0.5);
+    --gold: #d8b25a;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Bricolage Grotesque', system-ui, sans-serif;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  html, body { height: 100%; overflow: hidden; background: var(--bg); font-family: var(--sans); -webkit-font-smoothing: antialiased; color: var(--text); }
+  button { font-family: var(--sans); cursor: pointer; border: none; background: none; color: inherit; -webkit-tap-highlight-color: transparent; }
+  input, textarea { font-family: var(--sans); color: var(--text); }
+  ::-webkit-scrollbar { width: 0; height: 0; }
+  textarea:focus { outline: none; }
+
+  /* ── LAYOUT ── */
+  #app { display: flex; flex-direction: column; height: 100%; height: 100dvh; }
+
+  /* ── HEADER ── */
+  #header {
+    padding: calc(var(--safe-top) + 12px) 18px 13px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: relative; z-index: 5;
+    flex-shrink: 0;
+  }
+  .char-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .char-name { font-size: 21px; font-weight: 700; letter-spacing: -0.4px; }
+  .char-sub { font-family: var(--mono); font-size: 10px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--text-dim); margin-top: 4px; }
+  .level-badge { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; color: var(--green); border: 1px solid var(--green-border); border-radius: 8px; padding: 5px 9px; white-space: nowrap; }
+
+  .hp-row { display: flex; justify-content: space-between; align-items: baseline; margin: 14px 0 5px; }
+  .hp-label { font-family: var(--mono); font-size: 9.5px; letter-spacing: 1.5px; color: var(--text-faint); }
+  .hp-val { font-size: 12.5px; font-weight: 600; color: rgba(240,242,245,0.8); }
+  .hp-val span { color: var(--green); }
+  .bar-track { height: 5px; border-radius: 3px; background: rgba(255,255,255,0.12); overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width .25s ease, background .25s ease; }
+
+  .cond-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
+  .cond-chip { font-family: var(--mono); font-size: 9.5px; font-weight: 600; letter-spacing: 0.5px; color: var(--red); border: 1px solid var(--red-border); background: var(--red-bg); border-radius: 7px; padding: 5px 8px; text-transform: uppercase; }
+
+  .nav-row { display: flex; align-items: center; gap: 9px; margin-top: 14px; }
+  .dot { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.28); cursor: pointer; transition: all .2s ease; flex-shrink: 0; }
+  .dot.active { background: var(--green); }
+  .nav-label { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; color: rgba(240,242,245,0.6); text-transform: uppercase; }
+  .nav-num { margin-left: auto; font-family: var(--mono); font-size: 10px; color: var(--text-faint); }
+
+  /* ── CAROUSEL ── */
+  #carousel-wrap { flex: 1; overflow: hidden; position: relative; }
+  #track { display: flex; height: 100%; will-change: transform; }
+  .section { flex: 0 0 100%; height: 100%; overflow-y: auto; overflow-x: hidden; padding: 16px 16px calc(48px + var(--safe-bottom)); display: flex; flex-direction: column; gap: 12px; }
+
+  /* ── CARDS ── */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
+  .card-label { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; color: var(--text-dim); display: block; margin-bottom: 6px; }
+
+  /* ── BUTTONS ── */
+  .btn-round { width: 58px; height: 58px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.06); color: var(--text); font-size: 30px; font-weight: 300; line-height: 1; display: flex; align-items: center; justify-content: center; transition: background .15s; }
+  .btn-round:active { background: rgba(255,255,255,0.14); }
+  .btn-round.green { border-color: var(--green-border); background: var(--green-bg); color: var(--green); }
+  .btn-round.green:active { background: rgba(92,192,149,0.28); }
+  .btn-sq { width: 42px; height: 42px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.06); color: var(--text); font-size: 22px; font-weight: 300; display: flex; align-items: center; justify-content: center; transition: background .15s; }
+  .btn-sq:active { background: rgba(255,255,255,0.14); }
+  .btn-sm { width: 40px; height: 40px; border-radius: 11px; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.06); color: var(--text); font-size: 20px; font-weight: 300; display: flex; align-items: center; justify-content: center; transition: background .15s; }
+  .btn-sm:active { background: rgba(255,255,255,0.14); }
+  .btn-xs { width: 34px; height: 34px; border-radius: 9px; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.06); color: var(--text); font-size: 18px; font-weight: 300; display: flex; align-items: center; justify-content: center; transition: background .15s; }
+  .btn-xs:active { background: rgba(255,255,255,0.14); }
+
+  /* ── HP SECTION ── */
+  .hp-big { font-size: 66px; font-weight: 800; line-height: 0.92; letter-spacing: -2.5px; }
+  .hp-hint { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.5px; color: var(--text-faint); text-align: center; margin-top: 11px; }
+  .hp-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+  .bar-track-lg { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.1); overflow: hidden; margin-top: 18px; }
+  .temp-badge { font-family: var(--mono); font-size: 10px; font-weight: 600; color: var(--green); border: 1px solid var(--green-border); border-radius: 6px; padding: 3px 7px; }
+
+  /* ── TOGGLE ── */
+  .toggle-track { width: 50px; height: 30px; border-radius: 15px; position: relative; cursor: pointer; flex-shrink: 0; transition: background .2s ease; }
+  .toggle-knob { position: absolute; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: left .2s ease; }
+
+  /* ── COND GRID ── */
+  .cond-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; overflow: hidden; transition: max-height .3s ease, opacity .25s ease, margin-top .3s ease; }
+  .cond-btn { font-size: 12.5px; text-align: center; padding: 9px 6px; border-radius: 10px; cursor: pointer; transition: all .15s ease; border: 1px solid rgba(255,255,255,0.12); background: transparent; color: rgba(240,242,245,0.5); font-weight: 400; -webkit-tap-highlight-color: transparent; }
+  .cond-btn.on { border-color: var(--red-border); background: var(--red-bg); color: var(--red); font-weight: 600; }
+
+  /* ── STATS GRID ── */
+  .stats-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 15px 12px; text-align: center; }
+  .stat-label { font-family: var(--mono); font-size: 9px; letter-spacing: 1.2px; color: var(--text-dim); }
+  .stat-val { font-size: 34px; font-weight: 800; margin-top: 5px; line-height: 1; }
+
+  /* ── SAVING THROWS ── */
+  .saves-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 13px; }
+  .save-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 10px 11px; }
+  .save-item.prof { background: rgba(92,192,149,0.1); border-color: rgba(92,192,149,0.4); }
+  .save-row { display: flex; align-items: center; justify-content: space-between; }
+  .save-abil { font-family: var(--mono); font-size: 10.5px; letter-spacing: 1px; color: rgba(240,242,245,0.6); }
+  .save-item.prof .save-abil { color: var(--green); }
+  .save-dot { width: 8px; height: 8px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); }
+  .save-item.prof .save-dot { background: var(--green); border-color: var(--green); }
+  .save-mod { font-size: 23px; font-weight: 800; margin-top: 4px; }
+  .save-item.prof .save-mod { color: var(--text); }
+
+  /* ── ATTACKS ── */
+  .attack-header { display: flex; font-family: var(--mono); font-size: 9px; letter-spacing: 1px; color: var(--text-faint); margin: 13px 0 4px; }
+  .attack-row { display: flex; align-items: center; padding: 11px 0; border-top: 1px solid rgba(255,255,255,0.07); }
+  .attack-name { flex: 1; font-size: 14.5px; font-weight: 600; }
+  .attack-name small { font-size: 11px; font-weight: 500; color: rgba(240,242,245,0.4); }
+  .attack-hit { width: 56px; text-align: center; font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--green); }
+  .attack-dmg { width: 92px; text-align: right; font-size: 13.5px; font-weight: 600; }
+  .attack-dmg small { font-family: var(--mono); font-size: 9px; color: rgba(240,242,245,0.4); display: block; margin-top: 2px; }
+
+  /* ── SKILLS ── */
+  .skill-row { display: flex; align-items: center; gap: 11px; padding: 11px 12px; border-radius: 12px; border: 1px solid transparent; margin-top: 2px; }
+  .skill-row.hi { background: rgba(92,192,149,0.1); border-color: rgba(92,192,149,0.3); }
+  .skill-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.28); }
+  .skill-dot.prof { background: var(--green); border-color: var(--green); }
+  .skill-name { flex: 1; font-size: 14.5px; font-weight: 600; }
+  .skill-abil { font-family: var(--mono); font-size: 9.5px; letter-spacing: 1px; color: var(--text-faint); width: 34px; text-align: right; }
+  .skill-mod { font-size: 19px; font-weight: 800; width: 40px; text-align: right; }
+
+  /* ── SPELL SLOTS ── */
+  .slot-row { display: flex; align-items: center; gap: 14px; margin-top: 14px; }
+  .slot-lvl { font-family: var(--mono); font-size: 12px; color: rgba(240,242,245,0.7); width: 44px; }
+  .slot-pips { display: flex; gap: 9px; }
+  .slot-pip { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; transition: all .15s ease; border: 1px solid var(--green-border); background: var(--green-bg); -webkit-tap-highlight-color: transparent; }
+  .slot-pip.used { background: transparent; border-color: rgba(255,255,255,0.18); }
+
+  /* ── PREPARED ── */
+  .prep-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid rgba(255,255,255,0.07); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .prep-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.28); }
+  .prep-dot.on { background: var(--green); border-color: var(--green); }
+  .prep-name { flex: 1; font-size: 14.5px; }
+  .prep-name.on { font-weight: 600; color: var(--text); }
+  .prep-name.off { font-weight: 500; color: rgba(240,242,245,0.45); }
+  .prep-lvl { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.5px; color: var(--text-faint); }
+
+  /* ── INVENTORY ── */
+  .inv-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.07); }
+  .inv-name { flex: 1; font-size: 14.5px; font-weight: 600; }
+  .inv-detail { font-family: var(--mono); font-size: 10px; color: rgba(240,242,245,0.4); margin-left: 8px; }
+  .inv-stepper { display: flex; align-items: center; gap: 10px; }
+  .inv-qty { font-size: 16px; font-weight: 700; min-width: 40px; text-align: center; }
+  .inv-charge { font-size: 15px; font-weight: 700; color: var(--green); min-width: 46px; text-align: center; }
+  .gold-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid rgba(255,255,255,0.07); }
+  .gold-label { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--gold); width: 34px; }
+  .gold-name { flex: 1; font-size: 13.5px; color: rgba(240,242,245,0.7); }
+  .gold-val { font-size: 16px; font-weight: 700; min-width: 42px; text-align: center; }
+
+  /* ── PERSONAGGIO ── */
+  .char-card-title { font-size: 16px; font-weight: 600; margin-top: 6px; }
+  .char-text { font-size: 14px; line-height: 1.6; color: rgba(240,242,245,0.85); margin-top: 8px; }
+  .tag-label { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.5px; }
+  .tag-label.green { color: var(--green); }
+  .tag-label.red { color: var(--red); }
+  .tag-block { margin-top: 10px; display: flex; flex-direction: column; gap: 11px; }
+  .tag-entry p { font-size: 13.5px; line-height: 1.55; color: rgba(240,242,245,0.8); margin-top: 3px; }
+  textarea.notes { width: 100%; min-height: 96px; resize: vertical; background: var(--surface); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 12px; color: var(--text); font-size: 14px; line-height: 1.55; }
+  textarea.notes:focus { border-color: rgba(84,183,141,0.6); }
+
+  /* ── HD PIPS ── */
+  .hd-pip { width: 26px; height: 26px; border-radius: 8px; transition: all .15s ease; }
+  .hd-pip.on { background: rgba(92,192,149,0.2); border: 1px solid rgba(92,192,149,0.55); }
+  .hd-pip.off { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); }
+
+  /* ── TOOLBAR (salva/carica) ── */
+  #toolbar { position: fixed; bottom: calc(var(--safe-bottom) + 0px); left: 0; right: 0; display: flex; justify-content: center; gap: 12px; padding: 10px 16px calc(var(--safe-bottom) + 10px); background: linear-gradient(to top, var(--surface) 70%, transparent); z-index: 10; }
+  .tool-btn { font-family: var(--mono); font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 8px 16px; background: rgba(255,255,255,0.05); transition: all .15s; }
+  .tool-btn:active { background: rgba(255,255,255,0.12); color: var(--text); }
+  #file-input { display: none; }
+
+  /* ── MODAL EXACT HP ── */
+  #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 24px; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  #modal-overlay.open { opacity: 1; pointer-events: all; }
+  #modal-box { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 24px; width: 100%; max-width: 320px; }
+  #modal-box h3 { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
+  #modal-input { width: 100%; background: var(--surface); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 12px 16px; font-size: 28px; font-weight: 700; text-align: center; color: var(--text); }
+  #modal-input:focus { outline: none; border-color: var(--green); }
+  .modal-btns { display: flex; gap: 10px; margin-top: 16px; }
+  .modal-btn { flex: 1; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: 600; border: 1px solid var(--border); background: rgba(255,255,255,0.07); color: var(--text); transition: background .15s; }
+  .modal-btn.confirm { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+  .modal-btn:active { background: rgba(255,255,255,0.14); }
+  .modal-btn.confirm:active { background: rgba(92,192,149,0.28); }
+
+  /* ── CHEVRON ── */
+  .chevron { display: inline-block; transition: transform .25s ease; font-size: 12px; color: var(--text-dim); }
+  .chevron.open { transform: rotate(180deg); }
+
+  /* ── LEGEND ── */
+  .legend { font-family: var(--mono); font-size: 9px; letter-spacing: 0.5px; color: var(--text-faint); display: flex; align-items: center; gap: 7px; margin-top: 12px; }
+  .legend-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="header">
+    <div class="char-row">
+      <div>
+        <div class="char-name" id="h-name"></div>
+        <div class="char-sub" id="h-sub"></div>
+      </div>
+      <div class="level-badge" id="h-level"></div>
+    </div>
+    <div>
+      <div class="hp-row">
+        <span class="hp-label">PF</span>
+        <span class="hp-val"><span id="h-pf"></span> / <span id="h-pfmax"></span></span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" id="h-bar"></div></div>
+    </div>
+    <div class="cond-chips" id="h-conds" style="display:none"></div>
+    <div class="nav-row">
+      <div id="dots"></div>
+      <span class="nav-label" id="nav-label"></span>
+      <span class="nav-num" id="nav-num"></span>
+    </div>
+  </div>
+
+  <div id="carousel-wrap">
+    <div id="track">
+
+      <!-- 1 · STATO -->
+      <div class="section" id="sec-0">
+
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span class="card-label" style="margin:0">PUNTI FERITA</span>
+            <span class="temp-badge" id="temp-badge" style="display:none"></span>
+          </div>
+          <div class="hp-controls">
+            <button class="btn-round" id="dec-pf" aria-label="Riduci PF">−</button>
+            <div style="text-align:center">
+              <div class="hp-big" id="pf-display"></div>
+              <div style="font-family:var(--mono);font-size:10.5px;letter-spacing:1px;color:var(--text-dim);margin-top:5px">/ <span id="pfmax-display"></span> MAX</div>
+            </div>
+            <button class="btn-round green" id="inc-pf" aria-label="Aumenta PF">+</button>
+          </div>
+          <div class="bar-track-lg"><div class="bar-fill" id="pf-bar"></div></div>
+          <div class="hp-hint">tieni premuto per valore esatto</div>
+        </div>
+
+        <div class="card" id="temp-card" style="display:none">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div class="card-label">PF TEMPORANEI</div>
+              <div style="font-size:26px;font-weight:700;color:var(--green);margin-top:2px;line-height:1" id="pftemp-display"></div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn-sq" id="dec-temp">−</button>
+              <button class="btn-sq" id="inc-temp">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <span class="card-label" style="margin:0">DADI VITA · d10</span>
+            <span style="font-size:17px;font-weight:700" id="hd-display"></span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:13px">
+            <div style="display:flex;gap:7px" id="hd-pips"></div>
+            <div style="display:flex;gap:8px">
+              <button class="btn-sm" id="use-hd">−</button>
+              <button class="btn-sm" id="rec-hd">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="insp-row" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer">
+          <div style="display:flex;align-items:center;gap:11px">
+            <span style="color:var(--green);font-size:14px">◆</span>
+            <span style="font-size:16px;font-weight:600">Ispirazione</span>
+          </div>
+          <div class="toggle-track" id="insp-track">
+            <span class="toggle-knob" id="insp-knob"></span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" id="cond-header">
+            <span class="card-label" style="margin:0">CONDIZIONI</span>
+            <div style="display:flex;align-items:center;gap:11px">
+              <span style="font-family:var(--mono);font-size:10px;color:var(--red)" id="cond-count"></span>
+              <span class="chevron" id="cond-chevron">▾</span>
+            </div>
+          </div>
+          <div class="cond-grid" id="cond-grid"></div>
+        </div>
+
+      </div>
+
+      <!-- 2 · COMBATTIMENTO -->
+      <div class="section" id="sec-1">
+        <div class="stats-grid-3">
+          <div class="stat-card"><div class="stat-label">CA</div><div class="stat-val" id="ca-val"></div></div>
+          <div class="stat-card"><div class="stat-label">INIZIATIVA</div><div class="stat-val" id="ini-val"></div></div>
+          <div class="stat-card"><div class="stat-label">VELOCITÀ</div><div class="stat-val" id="spd-val"></div></div>
+        </div>
+        <div class="card">
+          <span class="card-label">TIRI SALVEZZA</span>
+          <div class="saves-grid" id="saves-grid"></div>
+          <div class="legend"><span class="legend-dot"></span> competente</div>
+        </div>
+        <div class="card">
+          <span class="card-label">ATTACCHI</span>
+          <div class="attack-header">
+            <span style="flex:1">ARMA</span><span style="width:56px;text-align:center">COLPIRE</span><span style="width:92px;text-align:right">DANNO</span>
+          </div>
+          <div id="attacks-list"></div>
+        </div>
+      </div>
+
+      <!-- 3 · ABILITÀ -->
+      <div class="section" id="sec-2">
+        <div class="card" style="padding:14px 14px 6px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:0 2px 4px">
+            <span class="card-label" style="margin:0">ABILITÀ</span>
+            <span class="legend"><span class="legend-dot"></span> competente</span>
+          </div>
+          <div id="skills-list"></div>
+        </div>
+      </div>
+
+      <!-- 4 · MAGIA -->
+      <div class="section" id="sec-3">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="stat-card"><div class="stat-label">CD TIRO SALVEZZA</div><div class="stat-val" id="spell-dc"></div></div>
+          <div class="stat-card"><div class="stat-label">ATTACCO INCANT.</div><div class="stat-val" id="spell-atk"></div></div>
+        </div>
+        <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:0.5px;color:rgba(240,242,245,0.4);text-align:center;margin-top:-4px" id="spell-ability-label"></div>
+        <div class="card">
+          <span class="card-label">SLOT INCANTESIMI</span>
+          <div id="slot-rows"></div>
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.5px;color:var(--text-faint);margin-top:14px">tocca uno slot per usarlo / liberarlo</div>
+        </div>
+        <div class="card">
+          <span class="card-label">INCANTESIMI PREPARATI</span>
+          <div id="prepared-list"></div>
+        </div>
+      </div>
+
+      <!-- 5 · INVENTARIO -->
+      <div class="section" id="sec-4">
+        <div class="card">
+          <span class="card-label">OGGETTI</span>
+          <div id="items-list"></div>
+        </div>
+        <div class="card">
+          <span class="card-label">MONETE</span>
+          <div id="gold-list"></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px">
+          <span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;color:rgba(240,242,245,0.4)">PESO TRASPORTATO</span>
+          <span style="font-size:14px;font-weight:600;color:rgba(240,242,245,0.75)" id="weight-display"></span>
+        </div>
+      </div>
+
+      <!-- 6 · PERSONAGGIO -->
+      <div class="section" id="sec-5">
+        <div class="card">
+          <span class="card-label">BACKGROUND</span>
+          <div class="char-card-title" id="char-background"></div>
+        </div>
+        <div class="card">
+          <span class="card-label">TRATTI DELLA PERSONALITÀ</span>
+          <p class="char-text" id="char-traits"></p>
+        </div>
+        <div class="card">
+          <span class="card-label">IDEALI · LEGAMI · DIFETTI</span>
+          <div class="tag-block" id="tag-block"></div>
+        </div>
+        <div class="card">
+          <span class="card-label">NOTE LIBERE</span>
+          <textarea class="notes" id="notes-area" placeholder="Annota qui…"></textarea>
+        </div>
+      </div>
+
+    </div><!-- #track -->
+  </div><!-- #carousel-wrap -->
+</div><!-- #app -->
+
+<!-- Toolbar salva/carica -->
+<div id="toolbar">
+  <button class="tool-btn" id="btn-save">↓ Salva JSON</button>
+  <button class="tool-btn" id="btn-load">↑ Carica JSON</button>
+  <button class="tool-btn" id="btn-rest">⟳ Riposo lungo</button>
+  <input type="file" id="file-input" accept=".json">
+</div>
+
+<!-- Modal input esatto HP -->
+<div id="modal-overlay">
+  <div id="modal-box">
+    <h3 id="modal-title">Imposta PF</h3>
+    <input type="number" id="modal-input" inputmode="numeric" min="0">
+    <div class="modal-btns">
+      <button class="modal-btn" id="modal-cancel">Annulla</button>
+      <button class="modal-btn confirm" id="modal-confirm">Conferma</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  DATI STATICI DEL PERSONAGGIO
+// ══════════════════════════════════════════════
+const CHAR = {
+  name: 'Theron Aldebrand',
+  sub: 'Paladino · Umano',
+  level: 5,
+  hdDie: 10,
+  ca: 18,
+  initiative: '+0',
+  speed: '9 m',
+  spellDC: 14,
+  spellAtk: '+6',
+  spellAbility: 'caratteristica da incantatore · CARISMA',
+  background: 'Nobile decaduto',
+  traits: 'Parlo con autorità tranquilla: anche i veterani tendono ad ascoltare. Non lascio mai un compagno indietro, costi quel che costi.',
+  ideals: 'Il potere esiste per proteggere i deboli, non per opprimerli.',
+  bond: 'Ho giurato di vendicare la rovina di Casa Aldebrand.',
+  flaw: "Antepongo l'onore alla prudenza, anche quando mi costa caro.",
+  savingThrows: [
+    { abil: 'FOR', mod: '+3', prof: false },
+    { abil: 'DES', mod: '+0', prof: false },
+    { abil: 'COS', mod: '+2', prof: false },
+    { abil: 'INT', mod: '−1', prof: false },
+    { abil: 'SAG', mod: '+4', prof: true },
+    { abil: 'CAR', mod: '+6', prof: true },
+  ],
+  attacks: [
+    { name: 'Spada lunga', sub: '', hit: '+6', dmg: '1d8+3', type: 'tagliente' },
+    { name: 'Spada lunga', sub: '2 mani', hit: '+6', dmg: '1d10+3', type: 'tagliente' },
+    { name: 'Giavellotto', sub: '9/36 m', hit: '+6', dmg: '1d6+3', type: 'perforante' },
+  ],
+  skills: [
+    { name: 'Percezione',        abil: 'SAG', mod: '+1', prof: false, hi: true  },
+    { name: 'Acrobazia',         abil: 'DES', mod: '+0', prof: false },
+    { name: 'Addestrare animali',abil: 'SAG', mod: '+1', prof: false },
+    { name: 'Arcano',            abil: 'INT', mod: '−1', prof: false },
+    { name: 'Atletica',          abil: 'FOR', mod: '+6', prof: true  },
+    { name: 'Furtività',         abil: 'DES', mod: '+0', prof: false },
+    { name: 'Indagare',          abil: 'INT', mod: '−1', prof: false },
+    { name: 'Inganno',           abil: 'CAR', mod: '+3', prof: false },
+    { name: 'Intimidire',        abil: 'CAR', mod: '+6', prof: true  },
+    { name: 'Intrattenere',      abil: 'CAR', mod: '+3', prof: false },
+    { name: 'Intuizione',        abil: 'SAG', mod: '+4', prof: true  },
+    { name: 'Medicina',          abil: 'SAG', mod: '+1', prof: false },
+    { name: 'Natura',            abil: 'INT', mod: '−1', prof: false },
+    { name: 'Persuasione',       abil: 'CAR', mod: '+6', prof: true  },
+    { name: 'Rapidità di mano',  abil: 'DES', mod: '+0', prof: false },
+    { name: 'Religione',         abil: 'INT', mod: '−1', prof: false },
+    { name: 'Sopravvivenza',     abil: 'SAG', mod: '+1', prof: false },
+    { name: 'Storia',            abil: 'INT', mod: '−1', prof: false },
+  ],
+  spellSlots: [
+    { level: 1, total: 4 },
+    { level: 2, total: 2 },
+  ],
+  spells: [
+    { name: 'Benedizione',          lvl: 1 },
+    { name: 'Comando',              lvl: 1 },
+    { name: 'Cura ferite',          lvl: 1 },
+    { name: 'Punizione marchiante', lvl: 1 },
+    { name: 'Arma spirituale',      lvl: 2 },
+    { name: 'Aiuto',                lvl: 2 },
+  ],
+  items: [
+    { name: 'Pozione di guarigione', type: 'qty' },
+    { name: 'Giavellotto',           type: 'qty' },
+    { name: 'Razioni',               type: 'qty', detail: 'giorni' },
+    { name: 'Amuleto del voto',      type: 'charge', max: 3 },
+    { name: 'Corda di canapa',       type: 'static', detail: '15 m' },
+    { name: 'Simbolo sacro',         type: 'static', detail: '—' },
+  ],
+  goldDefs: [
+    { k: 'mr', label: 'MR', name: 'Rame' },
+    { k: 'ma', label: 'MA', name: 'Argento' },
+    { k: 'mo', label: 'MO', name: 'Oro' },
+    { k: 'me', label: 'ME', name: 'Electrum' },
+    { k: 'mp', label: 'MP', name: 'Platino' },
+  ],
+  weightCarried: '≈ 38',
+  weightMax: 240,
+};
+
+const CONDS = ['Accecato','Affascinato','Afferrato','Assordato','Avvelenato','Incapacitato','Indebolimento','Invisibile','Paralizzato','Pietrificato','Privo di sensi','Prono','Spaventato','Stordito','Trattenuto'];
+const SECTIONS = ['Stato','Combattimento','Abilità','Magia','Inventario','Personaggio'];
+
+// ══════════════════════════════════════════════
+//  STATO (dati mutabili, salvati in JSON)
+// ══════════════════════════════════════════════
+let state = {
+  pf: 47, pfMax: 52, pfTemp: 7,
+  hdAvail: 3,
+  inspiration: true,
+  condOpen: true,
+  active: { Avvelenato: true },
+  slots: { 1: [false,false,false,false], 2: [false,false] },
+  prepared: { 'Benedizione': true, 'Comando': true, 'Cura ferite': true, 'Punizione marchiante': false, 'Arma spirituale': true, 'Aiuto': true },
+  qty: { 'Pozione di guarigione': 3, 'Giavellotto': 5, 'Razioni': 7 },
+  charges: { 'Amuleto del voto': 2 },
+  gold: { mr: 0, ma: 12, mo: 84, me: 0, mp: 6 },
+  note: "Cerca i responsabili dell'incendio che distrusse la dimora di famiglia. Non sa ancora che uno di loro siede nel consiglio della città.",
+  section: 0,
+};
+
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+function hpColor(pct) {
+  if (pct <= 25) return '#e0867a';
+  if (pct <= 50) return '#e0b25a';
+  return '#5cc095';
+}
+
+// ══════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════
+function render() {
+  const s = state;
+  const pct = s.pfMax > 0 ? Math.round(s.pf / s.pfMax * 100) : 0;
+  const col = hpColor(pct);
+  const activeNames = CONDS.filter(c => s.active[c]);
+
+  // Header
+  document.getElementById('h-name').textContent = CHAR.name;
+  document.getElementById('h-sub').textContent = CHAR.sub;
+  document.getElementById('h-level').textContent = `LIV ${CHAR.level}`;
+  document.getElementById('h-pf').textContent = s.pf;
+  document.getElementById('h-pfmax').textContent = s.pfMax;
+  const hBar = document.getElementById('h-bar');
+  hBar.style.width = pct + '%';
+  hBar.style.background = col;
+
+  const hConds = document.getElementById('h-conds');
+  if (activeNames.length > 0) {
+    hConds.style.display = 'flex';
+    hConds.innerHTML = activeNames.map(n => `<span class="cond-chip">${n}</span>`).join('');
+  } else {
+    hConds.style.display = 'none';
+  }
+
+  // Dots nav
+  const dotsEl = document.getElementById('dots');
+  dotsEl.style.display = 'flex';
+  dotsEl.style.gap = '5px';
+  dotsEl.style.alignItems = 'center';
+  dotsEl.innerHTML = SECTIONS.map((_, i) => {
+    const active = i === s.section;
+    return `<span class="dot${active?' active':''}" style="width:${active?18:6}px" data-idx="${i}"></span>`;
+  }).join('');
+  dotsEl.querySelectorAll('.dot').forEach(d => d.addEventListener('click', () => goTo(+d.dataset.idx)));
+  document.getElementById('nav-label').textContent = SECTIONS[s.section];
+  document.getElementById('nav-num').textContent = `${s.section+1} / ${SECTIONS.length}`;
+
+  // Track position
+  document.getElementById('track').style.transform = `translateX(${-s.section * 100}%)`;
+
+  // ── STATO ──
+  document.getElementById('pf-display').textContent = s.pf;
+  document.getElementById('pfmax-display').textContent = s.pfMax;
+  const pfBar = document.getElementById('pf-bar');
+  pfBar.style.width = pct + '%';
+  pfBar.style.background = col;
+
+  const tempBadge = document.getElementById('temp-badge');
+  const tempCard = document.getElementById('temp-card');
+  if (s.pfTemp > 0) {
+    tempBadge.style.display = '';
+    tempBadge.textContent = `TEMP +${s.pfTemp}`;
+    tempCard.style.display = '';
+    document.getElementById('pftemp-display').textContent = s.pfTemp;
+  } else {
+    tempBadge.style.display = 'none';
+    tempCard.style.display = 'none';
+  }
+
+  document.getElementById('hd-display').innerHTML = `${s.hdAvail} <span style="font-size:13px;font-weight:500;color:var(--text-dim)">/ ${CHAR.level}</span>`;
+  const hdPips = document.getElementById('hd-pips');
+  hdPips.innerHTML = Array.from({length: CHAR.level}, (_,i) =>
+    `<span class="hd-pip ${i < s.hdAvail ? 'on' : 'off'}"></span>`
+  ).join('');
+
+  const inspTrack = document.getElementById('insp-track');
+  const inspKnob = document.getElementById('insp-knob');
+  inspTrack.style.background = s.inspiration ? 'var(--green)' : 'rgba(255,255,255,0.14)';
+  inspKnob.style.left = s.inspiration ? '23px' : '3px';
+
+  const condCount = document.getElementById('cond-count');
+  condCount.textContent = activeNames.length + (activeNames.length === 1 ? ' attiva' : ' attive');
+  const condGrid = document.getElementById('cond-grid');
+  condGrid.style.maxHeight = s.condOpen ? '1000px' : '0px';
+  condGrid.style.opacity = s.condOpen ? '1' : '0';
+  condGrid.style.marginTop = s.condOpen ? '13px' : '0px';
+  document.getElementById('cond-chevron').className = `chevron${s.condOpen?' open':''}`;
+
+  condGrid.innerHTML = CONDS.map(name => {
+    const on = !!s.active[name];
+    return `<button class="cond-btn${on?' on':''}" data-cond="${name}">${name}</button>`;
+  }).join('');
+  condGrid.querySelectorAll('.cond-btn').forEach(b => b.addEventListener('click', () => toggleCond(b.dataset.cond)));
+
+  // ── COMBATTIMENTO ──
+  document.getElementById('ca-val').textContent = CHAR.ca;
+  document.getElementById('ini-val').textContent = CHAR.initiative;
+  document.getElementById('spd-val').innerHTML = CHAR.speed;
+
+  const savesGrid = document.getElementById('saves-grid');
+  savesGrid.innerHTML = CHAR.savingThrows.map(sv =>
+    `<div class="save-item${sv.prof?' prof':''}">
+      <div class="save-row">
+        <span class="save-abil">${sv.abil}</span>
+        <span class="save-dot"></span>
+      </div>
+      <div class="save-mod" style="color:${sv.prof?'var(--text)':'rgba(240,242,245,0.55)'}">${sv.mod}</div>
+    </div>`
+  ).join('');
+
+  const attacksList = document.getElementById('attacks-list');
+  attacksList.innerHTML = CHAR.attacks.map(a =>
+    `<div class="attack-row">
+      <span class="attack-name">${a.name}${a.sub?` <small>${a.sub}</small>`:''}</span>
+      <span class="attack-hit">${a.hit}</span>
+      <span class="attack-dmg">${a.dmg}<small>${a.type}</small></span>
+    </div>`
+  ).join('');
+
+  // ── ABILITÀ ──
+  const skillsList = document.getElementById('skills-list');
+  skillsList.innerHTML = CHAR.skills.map(sk => {
+    const modColor = sk.prof ? 'var(--green)' : (sk.mod.startsWith('−') ? 'rgba(240,242,245,0.5)' : 'var(--text)');
+    return `<div class="skill-row${sk.hi?' hi':''}">
+      <span class="skill-dot${sk.prof?' prof':''}"></span>
+      <span class="skill-name">${sk.name}</span>
+      <span class="skill-abil">${sk.abil}</span>
+      <span class="skill-mod" style="color:${modColor}">${sk.mod}</span>
+    </div>`;
+  }).join('');
+
+  // ── MAGIA ──
+  document.getElementById('spell-dc').textContent = CHAR.spellDC;
+  document.getElementById('spell-atk').textContent = CHAR.spellAtk;
+  document.getElementById('spell-ability-label').textContent = CHAR.spellAbility;
+
+  const slotRows = document.getElementById('slot-rows');
+  slotRows.innerHTML = CHAR.spellSlots.map(sl => {
+    const usedArr = s.slots[sl.level] || Array(sl.total).fill(false);
+    const pips = Array.from({length: sl.total}, (_,i) =>
+      `<span class="slot-pip${usedArr[i]?' used':''}" data-lvl="${sl.level}" data-idx="${i}"></span>`
+    ).join('');
+    return `<div class="slot-row"><span class="slot-lvl">LIV ${sl.level}</span><div class="slot-pips">${pips}</div></div>`;
+  }).join('');
+  slotRows.querySelectorAll('.slot-pip').forEach(p =>
+    p.addEventListener('click', () => toggleSlot(+p.dataset.lvl, +p.dataset.idx))
+  );
+
+  const prepList = document.getElementById('prepared-list');
+  prepList.innerHTML = CHAR.spells.map(sp => {
+    const on = !!s.prepared[sp.name];
+    return `<div class="prep-row" data-spell="${sp.name}">
+      <span class="prep-dot${on?' on':''}"></span>
+      <span class="prep-name${on?' on':' off'}">${sp.name}</span>
+      <span class="prep-lvl">LIV ${sp.lvl}</span>
+    </div>`;
+  }).join('');
+  prepList.querySelectorAll('.prep-row').forEach(r =>
+    r.addEventListener('click', () => togglePrep(r.dataset.spell))
+  );
+
+  // ── INVENTARIO ──
+  const itemsList = document.getElementById('items-list');
+  itemsList.innerHTML = CHAR.items.map(it => {
+    let stepper = '';
+    let detail = it.detail ? `<span class="inv-detail">${it.detail}</span>` : '';
+    if (it.type === 'qty') {
+      const qty = s.qty[it.name] ?? 0;
+      stepper = `<div class="inv-stepper">
+        <button class="btn-xs" data-action="dec-qty" data-name="${it.name}">−</button>
+        <span class="inv-qty">×${qty}</span>
+        <button class="btn-xs" data-action="inc-qty" data-name="${it.name}">+</button>
+      </div>`;
+    } else if (it.type === 'charge') {
+      const ch = s.charges[it.name] ?? 0;
+      stepper = `<div class="inv-stepper">
+        <button class="btn-xs" data-action="dec-charge" data-name="${it.name}" data-max="${it.max}">−</button>
+        <span class="inv-charge">${ch} / ${it.max}</span>
+        <button class="btn-xs" data-action="inc-charge" data-name="${it.name}" data-max="${it.max}">+</button>
+      </div>`;
+      detail = `<span class="inv-detail">cariche</span>`;
+    }
+    return `<div class="inv-row"><div class="inv-name">${it.name}${detail}</div>${stepper}</div>`;
+  }).join('');
+  itemsList.querySelectorAll('button[data-action]').forEach(b => {
+    b.addEventListener('click', e => {
+      const action = e.target.dataset.action;
+      const name = e.target.dataset.name;
+      const max = +e.target.dataset.max;
+      if (action === 'dec-qty') state.qty[name] = Math.max(0, (state.qty[name]||0) - 1);
+      if (action === 'inc-qty') state.qty[name] = (state.qty[name]||0) + 1;
+      if (action === 'dec-charge') state.charges[name] = clamp((state.charges[name]||0) - 1, 0, max);
+      if (action === 'inc-charge') state.charges[name] = clamp((state.charges[name]||0) + 1, 0, max);
+      render();
+    });
+  });
+
+  const goldList = document.getElementById('gold-list');
+  goldList.innerHTML = CHAR.goldDefs.filter(g => (s.gold[g.k]||0) > 0).map(g =>
+    `<div class="gold-row">
+      <span class="gold-label">${g.label}</span>
+      <span class="gold-name">${g.name}</span>
+      <div class="inv-stepper">
+        <button class="btn-xs" data-action="dec-gold" data-key="${g.k}">−</button>
+        <span class="gold-val">${s.gold[g.k]||0}</span>
+        <button class="btn-xs" data-action="inc-gold" data-key="${g.k}">+</button>
+      </div>
+    </div>`
+  ).join('');
+  goldList.querySelectorAll('button[data-action]').forEach(b => {
+    b.addEventListener('click', e => {
+      const k = e.target.dataset.key;
+      if (e.target.dataset.action === 'dec-gold') state.gold[k] = Math.max(0, (state.gold[k]||0) - 1);
+      else state.gold[k] = (state.gold[k]||0) + 1;
+      render();
+    });
+  });
+
+  document.getElementById('weight-display').innerHTML =
+    `${CHAR.weightCarried} <span style="font-size:11px;color:rgba(240,242,245,0.4)">/ ${CHAR.weightMax} kg</span>`;
+
+  // ── PERSONAGGIO ──
+  document.getElementById('char-background').textContent = CHAR.background;
+  document.getElementById('char-traits').textContent = CHAR.traits;
+  document.getElementById('tag-block').innerHTML = `
+    <div class="tag-entry"><span class="tag-label green">IDEALE</span><p>${CHAR.ideals}</p></div>
+    <div class="tag-entry"><span class="tag-label green">LEGAME</span><p>${CHAR.bond}</p></div>
+    <div class="tag-entry"><span class="tag-label red">DIFETTO</span><p>${CHAR.flaw}</p></div>
+  `;
+  const notesArea = document.getElementById('notes-area');
+  if (notesArea !== document.activeElement) notesArea.value = s.note;
+}
+
+// ══════════════════════════════════════════════
+//  AZIONI
+// ══════════════════════════════════════════════
+function goTo(i) { state.section = clamp(i, 0, SECTIONS.length - 1); render(); }
+
+function toggleCond(name) {
+  if (state.active[name]) delete state.active[name];
+  else state.active[name] = true;
+  render();
+}
+
+function toggleSlot(level, idx) {
+  if (!state.slots[level]) state.slots[level] = Array(CHAR.spellSlots.find(s=>s.level===level).total).fill(false);
+  state.slots[level][idx] = !state.slots[level][idx];
+  render();
+}
+
+function togglePrep(name) { state.prepared[name] = !state.prepared[name]; render(); }
+
+// ══════════════════════════════════════════════
+//  SWIPE GESTURE
+// ══════════════════════════════════════════════
+let _sx = 0, _sy = 0, _drag = false, _dec = false, _horiz = false, _live = 0;
+const track = document.getElementById('track');
+
+track.addEventListener('pointerdown', e => {
+  _sx = e.clientX; _sy = e.clientY;
+  _drag = true; _dec = false; _horiz = false; _live = 0;
+  track.style.transition = 'none';
+});
+track.addEventListener('pointermove', e => {
+  if (!_drag) return;
+  const dx = e.clientX - _sx, dy = e.clientY - _sy;
+  if (!_dec) {
+    if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
+      _dec = true;
+      _horiz = Math.abs(dx) > Math.abs(dy);
+      if (_horiz) e.preventDefault();
+    }
+    return;
+  }
+  if (!_horiz) return;
+  e.preventDefault();
+  const s = state.section;
+  let d = dx;
+  if ((s === 0 && d > 0) || (s >= SECTIONS.length - 1 && d < 0)) d *= 0.3;
+  _live = d;
+  track.style.transform = `translateX(calc(${-s * 100}% + ${d}px))`;
+}, { passive: false });
+
+function endSwipe(e) {
+  if (!_drag) return;
+  _drag = false;
+  track.style.transition = 'transform .32s cubic-bezier(.4,0,.2,1)';
+  if (_horiz) {
+    const dx = (e.clientX ?? (e.changedTouches?.[0]?.clientX ?? _sx)) - _sx;
+    let s = state.section;
+    if (dx < -70 && s < SECTIONS.length - 1) s++;
+    else if (dx > 70 && s > 0) s--;
+    state.section = s;
+  }
+  render();
+}
+track.addEventListener('pointerup', endSwipe);
+track.addEventListener('pointerleave', endSwipe);
+track.addEventListener('pointercancel', endSwipe);
+
+// ══════════════════════════════════════════════
+//  BOTTONI STATICI
+// ══════════════════════════════════════════════
+document.getElementById('dec-pf').addEventListener('click', () => {
+  state.pf = clamp(state.pf - 1, 0, state.pfMax); render();
+});
+document.getElementById('inc-pf').addEventListener('click', () => {
+  state.pf = clamp(state.pf + 1, 0, state.pfMax); render();
+});
+document.getElementById('dec-temp').addEventListener('click', () => {
+  state.pfTemp = Math.max(0, state.pfTemp - 1); render();
+});
+document.getElementById('inc-temp').addEventListener('click', () => {
+  state.pfTemp++; render();
+});
+document.getElementById('use-hd').addEventListener('click', () => {
+  state.hdAvail = Math.max(0, state.hdAvail - 1); render();
+});
+document.getElementById('rec-hd').addEventListener('click', () => {
+  state.hdAvail = Math.min(CHAR.level, state.hdAvail + 1); render();
+});
+document.getElementById('insp-row').addEventListener('click', () => {
+  state.inspiration = !state.inspiration; render();
+});
+document.getElementById('cond-header').addEventListener('click', () => {
+  state.condOpen = !state.condOpen; render();
+});
+document.getElementById('notes-area').addEventListener('input', e => {
+  state.note = e.target.value;
+});
+
+// ── Tieni premuto su PF per valore esatto ──
+let longPressTimer = null;
+const pfDisplay = document.getElementById('pf-display');
+
+function openModal(title, value, onConfirm) {
+  document.getElementById('modal-title').textContent = title;
+  const inp = document.getElementById('modal-input');
+  inp.value = value;
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(() => { inp.focus(); inp.select(); }, 100);
+  document.getElementById('modal-confirm').onclick = () => {
+    const v = parseInt(inp.value);
+    if (!isNaN(v)) onConfirm(v);
+    document.getElementById('modal-overlay').classList.remove('open');
+  };
+}
+document.getElementById('modal-cancel').addEventListener('click', () => {
+  document.getElementById('modal-overlay').classList.remove('open');
+});
+document.getElementById('modal-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-overlay'))
+    document.getElementById('modal-overlay').classList.remove('open');
+});
+
+const pfCard = pfDisplay.closest('.card');
+pfCard.addEventListener('pointerdown', e => {
+  longPressTimer = setTimeout(() => {
+    openModal('Imposta PF', state.pf, v => { state.pf = clamp(v, 0, state.pfMax); render(); });
+  }, 600);
+});
+pfCard.addEventListener('pointerup', () => clearTimeout(longPressTimer));
+pfCard.addEventListener('pointerleave', () => clearTimeout(longPressTimer));
+pfCard.addEventListener('pointercancel', () => clearTimeout(longPressTimer));
+
+// ══════════════════════════════════════════════
+//  TOOLBAR: SALVA / CARICA / RIPOSO
+// ══════════════════════════════════════════════
+document.getElementById('btn-save').addEventListener('click', () => {
+  const data = { char: CHAR.name, date: new Date().toISOString(), state };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${CHAR.name.replace(/\s+/g,'_')}_scheda.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+document.getElementById('btn-load').addEventListener('click', () => {
+  document.getElementById('file-input').click();
+});
+
+document.getElementById('file-input').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.state) { state = data.state; render(); }
+      else alert('File JSON non valido.');
+    } catch { alert('Errore nel leggere il file.'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+document.getElementById('btn-rest').addEventListener('click', () => {
+  if (!confirm('Riposo lungo: recuperi tutti i PF, tutti i dadi vita e tutti gli slot incantesimi?')) return;
+  state.pf = state.pfMax;
+  state.hdAvail = CHAR.level;
+  CHAR.spellSlots.forEach(sl => { state.slots[sl.level] = Array(sl.total).fill(false); });
+  render();
+});
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+// Ripristina transizione track dopo il primo frame
+track.style.transition = 'transform .32s cubic-bezier(.4,0,.2,1)';
+render();
+</script>
+</body>
+</html>
