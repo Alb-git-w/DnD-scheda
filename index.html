@@ -10,20 +10,20 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --bg: #1d1f24;
-  --surface: #2c313b;
-  --card: #363c48;
-  --border: rgba(255,255,255,0.09);
-  --text: #f0f2f5;
-  --text-dim: rgba(240,242,245,0.5);
-  --text-faint: rgba(240,242,245,0.32);
-  --green: #5cc095;
-  --green-bg: rgba(92,192,149,0.15);
-  --green-border: rgba(92,192,149,0.5);
-  --red: #ec9387;
-  --red-bg: rgba(232,138,126,0.16);
-  --red-border: rgba(232,138,126,0.5);
-  --gold: #d8b25a;
+  --bg: #13151a;
+  --surface: #1e2229;
+  --card: #272d38;
+  --border: rgba(255,255,255,0.13);
+  --text: #f5f7fa;
+  --text-dim: rgba(245,247,250,0.62);
+  --text-faint: rgba(245,247,250,0.4);
+  --green: #4ecb8d;
+  --green-bg: rgba(78,203,141,0.18);
+  --green-border: rgba(78,203,141,0.6);
+  --red: #f28b7d;
+  --red-bg: rgba(242,139,125,0.2);
+  --red-border: rgba(242,139,125,0.65);
+  --gold: #e8c060;
   --mono: 'IBM Plex Mono', monospace;
   --sans: 'Bricolage Grotesque', system-ui, sans-serif;
 }
@@ -332,6 +332,7 @@ label { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; color:
           </div>
           <div class="char-header-right">
             <div class="lv-badge">LIV <span id="hdrLv">1</span></div>
+            <span style="font-family:var(--mono);font-size:9px;color:var(--text-faint);letter-spacing:0.5px" id="versionBadge"></span>
             <button class="btn-gear" onclick="openSetup()">&#9881;</button>
           </div>
         </div>
@@ -534,6 +535,9 @@ label { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; color:
   </div>
 </div>
 <script>
+// ── VERSIONE ──
+const APP_VERSION = 'v0.1';
+
 // ── COSTANTI ──
 const CLASSI = [
   {name:'Barbaro',hd:'d12'},{name:'Bardo',hd:'d8'},{name:'Chierico',hd:'d8'},
@@ -657,6 +661,7 @@ function renderHeader() {
   el('hdrName').textContent = C.nome || '— Personaggio —';
   el('hdrSub').textContent = `${C.razza || '—'} · ${C.classe}`;
   el('hdrLv').textContent = C.livello;
+  const vb = el('versionBadge'); if(vb) vb.textContent = APP_VERSION;
   el('hdrPf').textContent = S.pf;
   el('hdrPfMax').textContent = C.pfMax;
   const bar = el('hdrBar');
@@ -821,6 +826,10 @@ function renderMagia() {
   mc.innerHTML = '';
   const hasSpells = C.incantesimi && C.incantesimi.length > 0;
   const hasSlots = C.spellSlots && Object.keys(C.spellSlots).length > 0;
+  if (C.nonMago) {
+    mc.innerHTML = `<div class="empty-state"><div><div class="icon">⚔️</div><div class="lbl">Nessuna magia</div><div class="hint">Il personaggio non lancia incantesimi</div></div></div>`;
+    return;
+  }
   if (!hasSpells && !hasSlots) {
     mc.innerHTML = `<div class="empty-state"><div><div class="icon">✨</div><div class="lbl">Nessun incantesimo</div><div class="hint">Configura la magia nel setup</div></div></div>`;
     return;
@@ -999,28 +1008,33 @@ function initCarousel() {
   const outer = el('carouselOuter');
   let startX = 0, startY = 0, lastDelta = 0, active = false, lockedAxis = null;
 
+  // Carosello: swipe orizzontale. Non usiamo setPointerCapture per non bloccare i click.
+  // Il drag si attiva solo dopo uno spostamento orizzontale minimo.
+  let isDragging = false; // true solo dopo che abbiamo confermato asse X
+
   outer.addEventListener('pointerdown', e => {
+    if (e.target.closest('button, input, textarea, select, a, [onclick]')) return;
     startX = e.clientX;
     startY = e.clientY;
     lastDelta = 0;
     active = true;
     lockedAxis = null;
+    isDragging = false;
     dragDelta = 0;
-    outer.setPointerCapture(e.pointerId);
   });
 
   outer.addEventListener('pointermove', e => {
     if (!active) return;
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
-    // Lock axis on first significant movement
     if (!lockedAxis) {
-      if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
+      if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
         lockedAxis = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y';
       }
     }
     if (lockedAxis !== 'x') return;
     e.preventDefault();
+    isDragging = true;
     lastDelta = dx;
     dragDelta = dx;
     el('carouselTrack').style.transition = 'none';
@@ -1031,21 +1045,20 @@ function initCarousel() {
     if (!active) return;
     active = false;
     lockedAxis = null;
-    const thresh = 50;
     el('carouselTrack').style.transition = '';
     dragDelta = 0;
+    if (!isDragging) { lastDelta = 0; return; } // era un tap, non uno swipe
+    const thresh = 50;
     if (lastDelta < -thresh) gotoSection(curSection + 1);
     else if (lastDelta > thresh) gotoSection(curSection - 1);
-    else {
-      el('carouselTrack').style.transform = `translateX(-${curSection * 100}%)`;
-    }
+    else el('carouselTrack').style.transform = `translateX(-${curSection * 100}%)`;
     lastDelta = 0;
+    isDragging = false;
   };
 
   outer.addEventListener('pointerup', endDrag);
   outer.addEventListener('pointercancel', () => {
-    // On cancel, just snap back without changing section
-    active = false; lockedAxis = null; lastDelta = 0; dragDelta = 0;
+    active = false; lockedAxis = null; lastDelta = 0; dragDelta = 0; isDragging = false;
     el('carouselTrack').style.transition = '';
     el('carouselTrack').style.transform = `translateX(-${curSection * 100}%)`;
   });
@@ -1089,6 +1102,40 @@ function openSetup() {
   setupStep = 0;
   el('setupOverlay').style.display = 'flex';
   renderSetup();
+  initSetupSwipe();
+}
+
+let _setupSwipeInit = false;
+function initSetupSwipe() {
+  if (_setupSwipeInit) return;
+  _setupSwipeInit = true;
+  const body = el('setupBody');
+  let sx = 0, sy = 0, swActive = false, swLocked = null, swMoved = false;
+  body.addEventListener('pointerdown', e => {
+    if (e.target.closest('button, input, textarea, select, a, [onclick]')) return;
+    sx = e.clientX; sy = e.clientY;
+    swActive = true; swLocked = null; swMoved = false;
+  });
+  body.addEventListener('pointermove', e => {
+    if (!swActive) return;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if (!swLocked && (Math.abs(dx) > 8 || Math.abs(dy) > 8))
+      swLocked = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y';
+    if (swLocked === 'x') { e.preventDefault(); swMoved = true; }
+  }, { passive: false });
+  const endSwipe = e => {
+    if (!swActive) return;
+    swActive = false;
+    if (!swMoved || swLocked !== 'x') return;
+    const dx = e.clientX - sx;
+    if (dx < -50 && setupStep < SETUP_STEPS.length - 1) {
+      collectSetupStep(); setupStep++; renderSetup();
+    } else if (dx > 50 && setupStep > 0) {
+      setupStep--; renderSetup();
+    }
+  };
+  body.addEventListener('pointerup', endSwipe);
+  body.addEventListener('pointercancel', () => { swActive = false; });
 }
 function closeSetup() {
   el('setupOverlay').style.display = 'none';
@@ -1170,11 +1217,13 @@ function collectSetupStep() {
       SD.ca = parseInt((el('si_ca')||{}).value) || SD.ca || 10;
       SD.velocita = parseInt((el('si_vel')||{}).value) || SD.velocita || 9;
       SD.pfMax = parseInt((el('si_pfmax')||{}).value) || SD.pfMax || 10;
+      if (window._setupPf !== undefined) S.pf = window._setupPf;
       break;
     case 4: // attacchi — collected live
       break;
     case 5: // magia — collected live
       SD.spellAbil = window._sdSpellAbil || SD.spellAbil || 'int';
+      // SD.nonMago already updated live via toggle
       break;
     case 6: // inventario & personaggio
       SD.tratti = (el('si_tratti')||{}).value || '';
@@ -1192,6 +1241,7 @@ function saveSetup() {
   Object.assign(C, SD);
   C.profBonus = pb();
   // init slots from spellSlots
+  if (C.nonMago) { C.spellSlots = {}; C.incantesimi = []; }
   const newSlots = {};
   Object.entries(C.spellSlots || {}).forEach(([lv, tot]) => {
     newSlots[lv] = parseInt(tot) || 0;
@@ -1206,8 +1256,11 @@ function saveSetup() {
   (C.items || []).forEach(item => { newQty[item.nome] = S.qty[item.nome] || 1; });
   S.qty = newQty;
   // reset pf if pfMax changed
-  if (S.pf > C.pfMax) S.pf = C.pfMax;
-  if (S.pf === 0 && C.pfMax > 0) S.pf = C.pfMax;
+  const _saved = localStorage.getItem(SKEY) ? JSON.parse(localStorage.getItem(SKEY)) : null;
+  const oldPfMax = _saved ? ((_saved.char||{}).pfMax||0) : 0;
+  const oldLivello = _saved ? ((_saved.char||{}).livello||0) : 0;
+  if (S.pf > C.pfMax) S.pf = C.pfMax;          // mai sopra il max
+  if (S.pf === 0 && C.pfMax > 0) S.pf = C.pfMax; // mai a 0 al primo salvataggio
   if (S.hdAvail > hdMax()) S.hdAvail = hdMax();
   saveState();
   closeSetup();
@@ -1387,10 +1440,31 @@ function renderStep2(step) {
 }
 
 function renderStep3(step) {
+  // PF attuali usano S.pf (stato live), non SD
+  const pfCur = S.pf || 0;
   step.innerHTML = `
     <div class="setup-field"><label>CA (Classe Armatura)</label><input id="si_ca" type="number" value="${SD.ca||10}" min="1" max="30"></div>
-    <div class="setup-field"><label>PF Massimi</label><input id="si_pfmax" type="number" value="${SD.pfMax||10}" min="1"></div>
+    <div class="setup-field"><label>PF Massimi</label><input id="si_pfmax" type="number" value="${SD.pfMax||10}" min="1" oninput="syncPfCur()"></div>
+    <div class="setup-field"><label>PF Attuali</label>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="btn-setup-step" onclick="adjSetupPf(-1)">&#8722;</button>
+        <div id="si_pf_val" style="font-size:26px;font-weight:800;min-width:48px;text-align:center">${pfCur}</div>
+        <button class="btn-setup-step" onclick="adjSetupPf(1)">+</button>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--text-dim)">/ <span id="si_pf_max_hint">${SD.pfMax||10}</span></span>
+      </div>
+    </div>
     <div class="setup-field"><label>Velocità (metri)</label><input id="si_vel" type="number" value="${SD.velocita||9}" min="0"></div>`;
+  window._setupPf = pfCur;
+  window.adjSetupPf = (d) => {
+    const mx = parseInt(el('si_pfmax').value) || SD.pfMax || 10;
+    window._setupPf = Math.max(0, Math.min(mx, (window._setupPf||0) + d));
+    el('si_pf_val').textContent = window._setupPf;
+  };
+  window.syncPfCur = () => {
+    const mx = parseInt(el('si_pfmax').value) || 1;
+    el('si_pf_max_hint').textContent = mx;
+    if (window._setupPf > mx) { window._setupPf = mx; el('si_pf_val').textContent = mx; }
+  };
 }
 
 function renderStep4(step) {
@@ -1430,7 +1504,36 @@ function renderStep4(step) {
 function renderStep5(step) {
   if (!SD.spellSlots) SD.spellSlots = {};
   if (!SD.incantesimi) SD.incantesimi = [];
+  if (SD.nonMago === undefined) SD.nonMago = false;
   window._sdSpellAbil = SD.spellAbil || 'int';
+
+  // Toggle "non lancia incantesimi"
+  const noMagoDiv = document.createElement('div');
+  noMagoDiv.className = 'card';
+  noMagoDiv.style.cursor = 'pointer';
+  noMagoDiv.innerHTML = `<div class="toggle-row">
+    <div style="display:flex;align-items:center;gap:11px">
+      <span style="color:var(--text-dim);font-size:14px">🚫</span>
+      <div><div style="font-size:15px;font-weight:600">Non lancia incantesimi</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:2px">Salta questa sezione</div></div>
+    </div>
+    <div class="toggle-track ${SD.nonMago ? 'on' : 'off'}" id="noMagoTrack"><div class="toggle-knob"></div></div>
+  </div>`;
+  noMagoDiv.onclick = () => {
+    SD.nonMago = !SD.nonMago;
+    const track = document.getElementById('noMagoTrack');
+    track.className = 'toggle-track ' + (SD.nonMago ? 'on' : 'off');
+    magiaFields.style.display = SD.nonMago ? 'none' : '';
+  };
+  step.appendChild(noMagoDiv);
+
+  // Contenitore campi magia (nascosto se nonMago)
+  const magiaFields = document.createElement('div');
+  magiaFields.style.display = SD.nonMago ? 'none' : '';
+  magiaFields.style.cssText += ';display:' + (SD.nonMago ? 'none' : 'flex') + ';flex-direction:column;gap:16px';
+  step.appendChild(magiaFields);
+  const _step = magiaFields; // redirect all fields into magiaFields
+
   // casting ability
   const abilDiv = document.createElement('div');
   abilDiv.className = 'setup-field';
@@ -1449,7 +1552,7 @@ function renderStep5(step) {
     abilGrid.appendChild(chip);
   });
   abilDiv.appendChild(abilGrid);
-  step.appendChild(abilDiv);
+  magiaFields.appendChild(abilDiv);
   // slot per livello
   const slotDiv = document.createElement('div');
   slotDiv.className = 'setup-field';
@@ -1481,7 +1584,7 @@ function renderStep5(step) {
     row.appendChild(plus);
     slotDiv.appendChild(row);
   }
-  step.appendChild(slotDiv);
+  magiaFields.appendChild(slotDiv);
   // incantesimi
   const spDiv = document.createElement('div');
   spDiv.className = 'setup-field';
@@ -1507,7 +1610,7 @@ function renderStep5(step) {
   window.removeSpell = (idx) => { SD.incantesimi.splice(idx,1); };
   window.renderSpellsInStep = renderSpells;
   renderSpells();
-  step.appendChild(spDiv);
+  magiaFields.appendChild(spDiv);
 }
 
 function renderStep6(step) {
@@ -1515,14 +1618,21 @@ function renderStep6(step) {
   // items
   const itemDiv = document.createElement('div');
   itemDiv.className = 'setup-field';
-  itemDiv.innerHTML = '<label>Oggetti nell\'Inventario</label>';
   const renderItems = () => {
-    while (itemDiv.children.length > 1) itemDiv.removeChild(itemDiv.lastChild);
-    SD.items.forEach((it, idx) => {
+    itemDiv.innerHTML = "<label>Oggetti nell'Inventario</label>";
+    SD.items.forEach((it, i) => {
       const row = document.createElement('div');
       row.className = 'input-row';
-      row.innerHTML = `<input placeholder="Nome oggetto" value="${it.nome||''}" oninput="SD.items[${idx}].nome=this.value">
-        <button class="btn-remove" onclick="removeItem(${idx});renderItemsInStep()">✕</button>`;
+      const inp = document.createElement('input');
+      inp.placeholder = 'Nome oggetto';
+      inp.value = it.nome || '';
+      inp.oninput = () => { SD.items[i].nome = inp.value; };
+      const del = document.createElement('button');
+      del.className = 'btn-remove';
+      del.textContent = '✕';
+      del.onclick = () => { SD.items.splice(i, 1); renderItems(); };
+      row.appendChild(inp);
+      row.appendChild(del);
       itemDiv.appendChild(row);
     });
     const addBtn = document.createElement('button');
@@ -1531,8 +1641,6 @@ function renderStep6(step) {
     addBtn.onclick = () => { SD.items.push({nome:''}); renderItems(); };
     itemDiv.appendChild(addBtn);
   };
-  window.removeItem = (idx) => { SD.items.splice(idx,1); };
-  window.renderItemsInStep = renderItems;
   renderItems();
   step.appendChild(itemDiv);
   // background
