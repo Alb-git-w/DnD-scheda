@@ -2,945 +2,1567 @@
 <html lang="it">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Scheda D&D">
-<meta name="theme-color" content="#1d1f24">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Scheda D&D 5e</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #1d1f24;
-    --surface: #2c313b;
-    --card: #363c48;
-    --border: rgba(255,255,255,0.09);
-    --text: #f0f2f5;
-    --text-dim: rgba(240,242,245,0.5);
-    --text-faint: rgba(240,242,245,0.32);
-    --green: #5cc095;
-    --green-bg: rgba(92,192,149,0.16);
-    --green-border: rgba(92,192,149,0.45);
-    --red: #ec9387;
-    --red-bg: rgba(232,138,126,0.14);
-    --red-border: rgba(232,138,126,0.5);
-    --gold: #d8b25a;
-    --mono: 'IBM Plex Mono', monospace;
-    --sans: 'Bricolage Grotesque', system-ui, sans-serif;
-    --safe-top: env(safe-area-inset-top, 0px);
-    --safe-bottom: env(safe-area-inset-bottom, 0px);
-  }
-  html, body { height: 100%; overflow: hidden; background: var(--bg); font-family: var(--sans); -webkit-font-smoothing: antialiased; color: var(--text); }
-  button { font-family: var(--sans); cursor: pointer; border: none; background: none; color: inherit; -webkit-tap-highlight-color: transparent; }
-  input, textarea { font-family: var(--sans); color: var(--text); }
-  ::-webkit-scrollbar { width: 0; height: 0; }
-  textarea:focus { outline: none; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #1d1f24;
+  --surface: #2c313b;
+  --card: #363c48;
+  --border: rgba(255,255,255,0.09);
+  --text: #f0f2f5;
+  --text-dim: rgba(240,242,245,0.5);
+  --text-faint: rgba(240,242,245,0.32);
+  --green: #5cc095;
+  --green-bg: rgba(92,192,149,0.15);
+  --green-border: rgba(92,192,149,0.5);
+  --red: #ec9387;
+  --red-bg: rgba(232,138,126,0.16);
+  --red-border: rgba(232,138,126,0.5);
+  --gold: #d8b25a;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Bricolage Grotesque', system-ui, sans-serif;
+}
+html, body { height: 100%; background: var(--bg); font-family: var(--sans); -webkit-font-smoothing: antialiased; color: var(--text); overflow-x: hidden; }
+button { font-family: var(--sans); cursor: pointer; }
+input, textarea { font-family: var(--sans); color: var(--text); background: var(--card); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 12px 14px; font-size: 15px; width: 100%; outline: none; }
+input:focus, textarea:focus { border-color: var(--green-border); }
+textarea { resize: vertical; line-height: 1.55; }
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+::-webkit-scrollbar { width: 0; height: 0; }
+label { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; color: var(--text-dim); text-transform: uppercase; display: block; margin-bottom: 6px; }
 
-  /* ── LAYOUT ── */
-  #app { display: flex; flex-direction: column; height: 100%; height: 100dvh; }
+/* ── LAYOUT ── */
+#app { min-height: 100vh; padding: 40px 24px 60px; display: flex; flex-direction: column; align-items: center; }
+.page-header { text-align: center; margin-bottom: 26px; }
+.page-header .tag { font-family: var(--mono); font-size: 11px; letter-spacing: 2.5px; color: var(--green); text-transform: uppercase; }
+.page-header h1 { font-size: 27px; font-weight: 800; letter-spacing: -0.5px; margin: 10px 0 6px; }
+.page-header p { font-size: 13.5px; color: var(--text-dim); }
 
-  /* ── HEADER ── */
-  #header {
-    padding: calc(var(--safe-top) + 12px) 18px 13px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-    position: relative; z-index: 5;
-    flex-shrink: 0;
-  }
-  .char-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-  .char-name { font-size: 21px; font-weight: 700; letter-spacing: -0.4px; }
-  .char-sub { font-family: var(--mono); font-size: 10px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--text-dim); margin-top: 4px; }
-  .level-badge { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; color: var(--green); border: 1px solid var(--green-border); border-radius: 8px; padding: 5px 9px; white-space: nowrap; }
+/* ── PHONE FRAME ── */
+.phone-wrap { position: relative; width: 390px; max-width: 100%; }
+.phone-frame {
+  width: 390px; max-width: 100%;
+  background: var(--surface);
+  border-radius: 50px;
+  overflow: hidden;
+  height: 844px;
+  box-shadow: 0 0 0 10px #111, 0 0 0 12px #333, 0 30px 80px rgba(0,0,0,0.7);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
 
-  .hp-row { display: flex; justify-content: space-between; align-items: baseline; margin: 14px 0 5px; }
-  .hp-label { font-family: var(--mono); font-size: 9.5px; letter-spacing: 1.5px; color: var(--text-faint); }
-  .hp-val { font-size: 12.5px; font-weight: 600; color: rgba(240,242,245,0.8); }
-  .hp-val span { color: var(--green); }
-  .bar-track { height: 5px; border-radius: 3px; background: rgba(255,255,255,0.12); overflow: hidden; }
-  .bar-fill { height: 100%; border-radius: 3px; transition: width .25s ease, background .25s ease; }
+/* ── HEADER ── */
+.char-header {
+  padding: 54px 18px 13px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: relative;
+  z-index: 5;
+  flex-shrink: 0;
+}
+.char-header-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.char-name { font-size: 21px; font-weight: 700; letter-spacing: -0.4px; }
+.char-sub { font-family: var(--mono); font-size: 10px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--text-dim); margin-top: 4px; }
+.char-header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.lv-badge { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--green); border: 1px solid var(--green-border); border-radius: 8px; padding: 5px 9px; white-space: nowrap; }
+.btn-gear { width: 32px; height: 32px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.07); color: rgba(240,242,245,0.7); font-size: 15px; display: flex; align-items: center; justify-content: center; }
+.btn-gear:hover { background: rgba(255,255,255,0.14); }
 
-  .cond-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
-  .cond-chip { font-family: var(--mono); font-size: 9.5px; font-weight: 600; letter-spacing: 0.5px; color: var(--red); border: 1px solid var(--red-border); background: var(--red-bg); border-radius: 7px; padding: 5px 8px; text-transform: uppercase; }
+.pf-bar-wrap { margin-top: 14px; }
+.pf-bar-labels { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+.pf-bar-labels .lbl { font-family: var(--mono); font-size: 9.5px; letter-spacing: 1.5px; color: var(--text-faint); }
+.pf-bar-labels .val { font-size: 12.5px; font-weight: 600; color: rgba(240,242,245,0.8); }
+.pf-bar-labels .val span { color: var(--green); }
+.bar-track { height: 5px; border-radius: 3px; background: rgba(255,255,255,0.12); overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3px; transition: width .25s ease, background .25s ease; }
 
-  .nav-row { display: flex; align-items: center; gap: 9px; margin-top: 14px; }
-  .dot { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.28); cursor: pointer; transition: all .2s ease; flex-shrink: 0; }
-  .dot.active { background: var(--green); }
-  .nav-label { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; color: rgba(240,242,245,0.6); text-transform: uppercase; }
-  .nav-num { margin-left: auto; font-family: var(--mono); font-size: 10px; color: var(--text-faint); }
+.conditions-active { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
+.cond-badge { font-family: var(--mono); font-size: 9.5px; font-weight: 600; letter-spacing: 0.5px; color: var(--red); border: 1px solid var(--red-border); background: var(--red-bg); border-radius: 7px; padding: 5px 8px; text-transform: uppercase; }
 
-  /* ── CAROUSEL ── */
-  #carousel-wrap { flex: 1; overflow: hidden; position: relative; }
-  #track { display: flex; height: 100%; will-change: transform; }
-  .section { flex: 0 0 100%; height: 100%; overflow-y: auto; overflow-x: hidden; padding: 16px 16px calc(48px + var(--safe-bottom)); display: flex; flex-direction: column; gap: 12px; }
+.section-nav { display: flex; align-items: center; gap: 9px; margin-top: 14px; }
+.dots { display: flex; gap: 5px; align-items: center; }
+.dot { height: 6px; border-radius: 3px; cursor: pointer; transition: all .2s ease; flex-shrink: 0; background: rgba(255,255,255,0.28); width: 6px; border-radius: 50%; }
+.dot.active { width: 18px; background: var(--green); border-radius: 3px; }
+.section-name { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; color: rgba(240,242,245,0.6); text-transform: uppercase; }
+.section-num { margin-left: auto; font-family: var(--mono); font-size: 10px; color: var(--text-faint); }
 
-  /* ── CARDS ── */
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
-  .card-label { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; color: var(--text-dim); display: block; margin-bottom: 6px; }
+/* ── CAROSELLO ── */
+.carousel-outer { flex: 1; overflow: hidden; position: relative; }
+.carousel-track {
+  display: flex; height: 100%; width: 100%;
+  transition: transform .32s cubic-bezier(.4,0,.2,1);
+  touch-action: pan-y;
+  will-change: transform;
+}
+.carousel-track.dragging { transition: none; }
+.section-panel { flex: 0 0 100%; height: 100%; overflow-y: auto; padding: 16px 16px 48px; display: flex; flex-direction: column; gap: 12px; }
 
-  /* ── BUTTONS ── */
-  .btn-round { width: 58px; height: 58px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.06); color: var(--text); font-size: 30px; font-weight: 300; line-height: 1; display: flex; align-items: center; justify-content: center; transition: background .15s; }
-  .btn-round:active { background: rgba(255,255,255,0.14); }
-  .btn-round.green { border-color: var(--green-border); background: var(--green-bg); color: var(--green); }
-  .btn-round.green:active { background: rgba(92,192,149,0.28); }
-  .btn-sq { width: 42px; height: 42px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.06); color: var(--text); font-size: 22px; font-weight: 300; display: flex; align-items: center; justify-content: center; transition: background .15s; }
-  .btn-sq:active { background: rgba(255,255,255,0.14); }
-  .btn-sm { width: 40px; height: 40px; border-radius: 11px; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.06); color: var(--text); font-size: 20px; font-weight: 300; display: flex; align-items: center; justify-content: center; transition: background .15s; }
-  .btn-sm:active { background: rgba(255,255,255,0.14); }
-  .btn-xs { width: 34px; height: 34px; border-radius: 9px; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.06); color: var(--text); font-size: 18px; font-weight: 300; display: flex; align-items: center; justify-content: center; transition: background .15s; }
-  .btn-xs:active { background: rgba(255,255,255,0.14); }
+/* ── CARDS ── */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
+.card-label { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; color: var(--text-dim); }
+.card-title { font-size: 14px; font-weight: 600; color: var(--text); margin-top: 6px; }
 
-  /* ── HP SECTION ── */
-  .hp-big { font-size: 66px; font-weight: 800; line-height: 0.92; letter-spacing: -2.5px; }
-  .hp-hint { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.5px; color: var(--text-faint); text-align: center; margin-top: 11px; }
-  .hp-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
-  .bar-track-lg { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.1); overflow: hidden; margin-top: 18px; }
-  .temp-badge { font-family: var(--mono); font-size: 10px; font-weight: 600; color: var(--green); border: 1px solid var(--green-border); border-radius: 6px; padding: 3px 7px; }
+/* ── PF CARD ── */
+.pf-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 18px 18px 16px; }
+.pf-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.temp-badge { font-family: var(--mono); font-size: 10px; font-weight: 600; color: var(--green); border: 1px solid var(--green-border); border-radius: 6px; padding: 3px 7px; }
+.pf-stepper { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.btn-round { width: 58px; height: 58px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.06); color: var(--text); font-size: 30px; font-weight: 300; display: flex; align-items: center; justify-content: center; }
+.btn-round:hover { background: rgba(255,255,255,0.12); }
+.btn-round.green { border-color: var(--green-border); background: var(--green-bg); color: var(--green); }
+.btn-round.green:hover { background: rgba(92,192,149,0.28); }
+.pf-number { font-size: 66px; font-weight: 800; line-height: 0.92; letter-spacing: -2.5px; text-align: center; }
+.pf-max { font-family: var(--mono); font-size: 10.5px; letter-spacing: 1px; color: var(--text-dim); margin-top: 5px; }
+.bar-lg { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.1); overflow: hidden; margin-top: 18px; }
 
-  /* ── TOGGLE ── */
-  .toggle-track { width: 50px; height: 30px; border-radius: 15px; position: relative; cursor: pointer; flex-shrink: 0; transition: background .2s ease; }
-  .toggle-knob { position: absolute; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: left .2s ease; }
+/* ── STEPPER ── */
+.stepper-row { display: flex; align-items: center; gap: 10px; }
+.btn-sq { border-radius: 11px; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.06); color: var(--text); font-size: 20px; font-weight: 300; display: flex; align-items: center; justify-content: center; }
+.btn-sq:hover { background: rgba(255,255,255,0.12); }
+.btn-sq.sm { width: 34px; height: 34px; font-size: 18px; border-radius: 9px; }
+.btn-sq.md { width: 40px; height: 40px; }
+.btn-sq.lg { width: 42px; height: 42px; border-radius: 12px; font-size: 22px; }
 
-  /* ── COND GRID ── */
-  .cond-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; overflow: hidden; transition: max-height .3s ease, opacity .25s ease, margin-top .3s ease; }
-  .cond-btn { font-size: 12.5px; text-align: center; padding: 9px 6px; border-radius: 10px; cursor: pointer; transition: all .15s ease; border: 1px solid rgba(255,255,255,0.12); background: transparent; color: rgba(240,242,245,0.5); font-weight: 400; -webkit-tap-highlight-color: transparent; }
-  .cond-btn.on { border-color: var(--red-border); background: var(--red-bg); color: var(--red); font-weight: 600; }
+/* ── HD PIPS ── */
+.hd-pips { display: flex; gap: 7px; flex-wrap: wrap; }
+.hd-pip { width: 26px; height: 26px; border-radius: 8px; transition: all .15s ease; }
+.hd-pip.on { background: rgba(92,192,149,0.2); border: 1px solid var(--green-border); }
+.hd-pip.off { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); }
 
-  /* ── STATS GRID ── */
-  .stats-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 15px 12px; text-align: center; }
-  .stat-label { font-family: var(--mono); font-size: 9px; letter-spacing: 1.2px; color: var(--text-dim); }
-  .stat-val { font-size: 34px; font-weight: 800; margin-top: 5px; line-height: 1; }
+/* ── TOGGLE ── */
+.toggle-row { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+.toggle-track { width: 50px; height: 30px; border-radius: 15px; position: relative; flex-shrink: 0; transition: background .2s ease; }
+.toggle-track.on { background: var(--green); }
+.toggle-track.off { background: rgba(255,255,255,0.14); }
+.toggle-knob { position: absolute; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: left .2s ease; }
+.toggle-track.on .toggle-knob { left: 23px; }
+.toggle-track.off .toggle-knob { left: 3px; }
 
-  /* ── SAVING THROWS ── */
-  .saves-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 13px; }
-  .save-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 10px 11px; }
-  .save-item.prof { background: rgba(92,192,149,0.1); border-color: rgba(92,192,149,0.4); }
-  .save-row { display: flex; align-items: center; justify-content: space-between; }
-  .save-abil { font-family: var(--mono); font-size: 10.5px; letter-spacing: 1px; color: rgba(240,242,245,0.6); }
-  .save-item.prof .save-abil { color: var(--green); }
-  .save-dot { width: 8px; height: 8px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); }
-  .save-item.prof .save-dot { background: var(--green); border-color: var(--green); }
-  .save-mod { font-size: 23px; font-weight: 800; margin-top: 4px; }
-  .save-item.prof .save-mod { color: var(--text); }
+/* ── CONDITIONS GRID ── */
+.cond-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+.cond-count { font-family: var(--mono); font-size: 10px; color: var(--red); }
+.chevron { transition: transform .25s ease; display: inline-block; color: var(--text-dim); font-size: 12px; }
+.chevron.open { transform: rotate(180deg); }
+.cond-grid-wrap { overflow: hidden; transition: max-height .3s ease, opacity .25s ease, margin-top .3s ease; }
+.cond-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cond-item { font-size: 12.5px; text-align: center; padding: 9px 6px; border-radius: 10px; cursor: pointer; transition: all .15s ease; border: 1px solid rgba(255,255,255,0.12); color: var(--text-dim); }
+.cond-item.on { border-color: var(--red-border); background: var(--red-bg); color: var(--red); font-weight: 600; }
 
-  /* ── ATTACKS ── */
-  .attack-header { display: flex; font-family: var(--mono); font-size: 9px; letter-spacing: 1px; color: var(--text-faint); margin: 13px 0 4px; }
-  .attack-row { display: flex; align-items: center; padding: 11px 0; border-top: 1px solid rgba(255,255,255,0.07); }
-  .attack-name { flex: 1; font-size: 14.5px; font-weight: 600; }
-  .attack-name small { font-size: 11px; font-weight: 500; color: rgba(240,242,245,0.4); }
-  .attack-hit { width: 56px; text-align: center; font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--green); }
-  .attack-dmg { width: 92px; text-align: right; font-size: 13.5px; font-weight: 600; }
-  .attack-dmg small { font-family: var(--mono); font-size: 9px; color: rgba(240,242,245,0.4); display: block; margin-top: 2px; }
+/* ── STATS GRID ── */
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 13px; }
+.stat-cell { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 10px 11px; }
+.stat-cell.prof { background: rgba(92,192,149,0.1); border-color: rgba(92,192,149,0.4); }
+.stat-cell-top { display: flex; align-items: center; justify-content: space-between; }
+.stat-lbl { font-family: var(--mono); font-size: 10.5px; letter-spacing: 1px; color: rgba(240,242,245,0.6); }
+.stat-lbl.prof { color: var(--green); }
+.stat-dot { width: 8px; height: 8px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); }
+.stat-dot.prof { background: var(--green); border: none; }
+.stat-mod { font-size: 23px; font-weight: 800; color: var(--text); margin-top: 4px; }
+.stat-mod.dim { color: rgba(240,242,245,0.55); }
+.prof-legend { font-family: var(--mono); font-size: 9px; color: var(--text-faint); margin-top: 12px; display: flex; align-items: center; gap: 7px; }
+.prof-legend .dot-green { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; }
 
-  /* ── SKILLS ── */
-  .skill-row { display: flex; align-items: center; gap: 11px; padding: 11px 12px; border-radius: 12px; border: 1px solid transparent; margin-top: 2px; }
-  .skill-row.hi { background: rgba(92,192,149,0.1); border-color: rgba(92,192,149,0.3); }
-  .skill-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.28); }
-  .skill-dot.prof { background: var(--green); border-color: var(--green); }
-  .skill-name { flex: 1; font-size: 14.5px; font-weight: 600; }
-  .skill-abil { font-family: var(--mono); font-size: 9.5px; letter-spacing: 1px; color: var(--text-faint); width: 34px; text-align: right; }
-  .skill-mod { font-size: 19px; font-weight: 800; width: 40px; text-align: right; }
+/* ── ATTACKS ── */
+.atk-header { display: flex; font-family: var(--mono); font-size: 9px; letter-spacing: 1px; color: var(--text-faint); margin: 13px 0 4px; }
+.atk-row { display: flex; align-items: center; padding: 11px 0; border-top: 1px solid rgba(255,255,255,0.07); }
+.atk-name { flex: 1; font-size: 14.5px; font-weight: 600; }
+.atk-bonus { width: 56px; text-align: center; font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--green); }
+.atk-dmg { width: 92px; text-align: right; font-size: 13.5px; font-weight: 600; }
+.atk-type { font-family: var(--mono); font-size: 9px; color: var(--text-faint); display: block; margin-top: 2px; }
 
-  /* ── SPELL SLOTS ── */
-  .slot-row { display: flex; align-items: center; gap: 14px; margin-top: 14px; }
-  .slot-lvl { font-family: var(--mono); font-size: 12px; color: rgba(240,242,245,0.7); width: 44px; }
-  .slot-pips { display: flex; gap: 9px; }
-  .slot-pip { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; transition: all .15s ease; border: 1px solid var(--green-border); background: var(--green-bg); -webkit-tap-highlight-color: transparent; }
-  .slot-pip.used { background: transparent; border-color: rgba(255,255,255,0.18); }
+/* ── SKILLS ── */
+.skill-row { display: flex; align-items: center; gap: 11px; padding: 11px 12px; border-radius: 12px; margin-top: 2px; border: 1px solid transparent; }
+.skill-row.hi { background: rgba(92,192,149,0.1); border-color: rgba(92,192,149,0.3); }
+.skill-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.28); }
+.skill-dot.prof { background: var(--green); border: none; }
+.skill-name { flex: 1; font-size: 14.5px; font-weight: 600; }
+.skill-abil { font-family: var(--mono); font-size: 9.5px; color: var(--text-faint); width: 34px; text-align: right; }
+.skill-mod { font-size: 19px; font-weight: 800; width: 40px; text-align: right; }
+.skill-mod.prof { color: var(--green); }
+.skill-mod.dim { color: rgba(240,242,245,0.5); }
 
-  /* ── PREPARED ── */
-  .prep-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid rgba(255,255,255,0.07); cursor: pointer; -webkit-tap-highlight-color: transparent; }
-  .prep-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.28); }
-  .prep-dot.on { background: var(--green); border-color: var(--green); }
-  .prep-name { flex: 1; font-size: 14.5px; }
-  .prep-name.on { font-weight: 600; color: var(--text); }
-  .prep-name.off { font-weight: 500; color: rgba(240,242,245,0.45); }
-  .prep-lvl { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.5px; color: var(--text-faint); }
+/* ── MAGIC ── */
+.spell-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.spell-stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 15px 14px; text-align: center; }
+.spell-stat-lbl { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; color: var(--text-dim); }
+.spell-stat-val { font-size: 32px; font-weight: 800; margin-top: 4px; line-height: 1; }
+.spell-abil-note { font-family: var(--mono); font-size: 9.5px; color: var(--text-dim); text-align: center; margin-top: -4px; }
+.slot-row { display: flex; align-items: center; gap: 14px; margin-top: 14px; }
+.slot-lv { font-family: var(--mono); font-size: 12px; color: rgba(240,242,245,0.7); width: 44px; flex-shrink: 0; }
+.slots-pips { display: flex; gap: 9px; }
+.slot-pip { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; transition: all .15s ease; }
+.slot-pip.avail { background: rgba(92,192,149,0.22); border: 1px solid var(--green-border); }
+.slot-pip.used { background: transparent; border: 1px solid rgba(255,255,255,0.18); }
+.spell-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid rgba(255,255,255,0.07); cursor: pointer; }
+.spell-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.28); }
+.spell-dot.prep { background: var(--green); border: none; }
+.spell-name { flex: 1; font-size: 14.5px; }
+.spell-name.prep { font-weight: 600; color: var(--text); }
+.spell-name.unprep { font-weight: 500; color: rgba(240,242,245,0.45); }
+.spell-lv { font-family: var(--mono); font-size: 9.5px; color: var(--text-faint); }
 
-  /* ── INVENTORY ── */
-  .inv-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.07); }
-  .inv-name { flex: 1; font-size: 14.5px; font-weight: 600; }
-  .inv-detail { font-family: var(--mono); font-size: 10px; color: rgba(240,242,245,0.4); margin-left: 8px; }
-  .inv-stepper { display: flex; align-items: center; gap: 10px; }
-  .inv-qty { font-size: 16px; font-weight: 700; min-width: 40px; text-align: center; }
-  .inv-charge { font-size: 15px; font-weight: 700; color: var(--green); min-width: 46px; text-align: center; }
-  .gold-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid rgba(255,255,255,0.07); }
-  .gold-label { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--gold); width: 34px; }
-  .gold-name { flex: 1; font-size: 13.5px; color: rgba(240,242,245,0.7); }
-  .gold-val { font-size: 16px; font-weight: 700; min-width: 42px; text-align: center; }
+/* ── INVENTORY ── */
+.item-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.07); }
+.item-name { flex: 1; font-size: 14.5px; font-weight: 600; }
+.item-val { font-size: 16px; font-weight: 700; min-width: 40px; text-align: center; }
+.gold-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid rgba(255,255,255,0.07); }
+.gold-lbl { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--gold); width: 34px; flex-shrink: 0; }
+.gold-name { flex: 1; font-size: 13.5px; color: rgba(240,242,245,0.7); }
+.gold-val { font-size: 16px; font-weight: 700; min-width: 42px; text-align: center; }
 
-  /* ── PERSONAGGIO ── */
-  .char-card-title { font-size: 16px; font-weight: 600; margin-top: 6px; }
-  .char-text { font-size: 14px; line-height: 1.6; color: rgba(240,242,245,0.85); margin-top: 8px; }
-  .tag-label { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.5px; }
-  .tag-label.green { color: var(--green); }
-  .tag-label.red { color: var(--red); }
-  .tag-block { margin-top: 10px; display: flex; flex-direction: column; gap: 11px; }
-  .tag-entry p { font-size: 13.5px; line-height: 1.55; color: rgba(240,242,245,0.8); margin-top: 3px; }
-  textarea.notes { width: 100%; min-height: 96px; resize: vertical; background: var(--surface); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 12px; color: var(--text); font-size: 14px; line-height: 1.55; }
-  textarea.notes:focus { border-color: rgba(84,183,141,0.6); }
+/* ── PERSONAGGIO ── */
+.char-section { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
+.char-section p { font-size: 14px; line-height: 1.6; color: rgba(240,242,245,0.85); margin-top: 8px; }
+.ild-item { margin-bottom: 11px; }
+.ild-item:last-child { margin-bottom: 0; }
+.ild-lbl { font-family: var(--mono); font-size: 9.5px; color: var(--green); }
+.ild-lbl.red { color: var(--red); }
+.ild-item p { font-size: 13.5px; line-height: 1.55; color: rgba(240,242,245,0.8); margin-top: 3px; }
+.note-area { width: 100%; min-height: 96px; }
 
-  /* ── HD PIPS ── */
-  .hd-pip { width: 26px; height: 26px; border-radius: 8px; transition: all .15s ease; }
-  .hd-pip.on { background: rgba(92,192,149,0.2); border: 1px solid rgba(92,192,149,0.55); }
-  .hd-pip.off { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); }
+/* ── EMPTY STATE ── */
+.empty-state { flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 40px 20px; }
+.empty-state .icon { font-size: 32px; opacity: 0.3; margin-bottom: 12px; }
+.empty-state .lbl { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; color: rgba(240,242,245,0.35); }
+.empty-state .hint { font-size: 13px; color: rgba(240,242,245,0.3); margin-top: 6px; }
 
-  /* ── TOOLBAR (salva/carica) ── */
-  #toolbar { position: fixed; bottom: calc(var(--safe-bottom) + 0px); left: 0; right: 0; display: flex; justify-content: center; gap: 12px; padding: 10px 16px calc(var(--safe-bottom) + 10px); background: linear-gradient(to top, var(--surface) 70%, transparent); z-index: 10; }
-  .tool-btn { font-family: var(--mono); font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 8px 16px; background: rgba(255,255,255,0.05); transition: all .15s; }
-  .tool-btn:active { background: rgba(255,255,255,0.12); color: var(--text); }
-  #file-input { display: none; }
+/* ── SETUP OVERLAY ── */
+.setup-overlay {
+  position: absolute; inset: 0; z-index: 100;
+  background: var(--surface);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.setup-header { padding: 54px 18px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.setup-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.setup-tag { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; color: var(--green); text-transform: uppercase; }
+.setup-title { font-size: 18px; font-weight: 700; margin-top: 3px; }
+.btn-close { width: 32px; height: 32px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.07); color: rgba(240,242,245,0.7); font-size: 16px; display: flex; align-items: center; justify-content: center; }
+.setup-progress { display: flex; gap: 5px; }
+.setup-dot { height: 8px; border-radius: 4px; transition: all .2s ease; flex-shrink: 0; }
+.setup-dot.done { background: rgba(92,192,149,0.5); width: 8px; border-radius: 50%; }
+.setup-dot.current { background: var(--green); width: 22px; }
+.setup-dot.todo { background: rgba(255,255,255,0.2); width: 8px; border-radius: 50%; }
 
-  /* ── MODAL EXACT HP ── */
-  #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 24px; opacity: 0; pointer-events: none; transition: opacity .2s; }
-  #modal-overlay.open { opacity: 1; pointer-events: all; }
-  #modal-box { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 24px; width: 100%; max-width: 320px; }
-  #modal-box h3 { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
-  #modal-input { width: 100%; background: var(--surface); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 12px 16px; font-size: 28px; font-weight: 700; text-align: center; color: var(--text); }
-  #modal-input:focus { outline: none; border-color: var(--green); }
-  .modal-btns { display: flex; gap: 10px; margin-top: 16px; }
-  .modal-btn { flex: 1; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: 600; border: 1px solid var(--border); background: rgba(255,255,255,0.07); color: var(--text); transition: background .15s; }
-  .modal-btn.confirm { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
-  .modal-btn:active { background: rgba(255,255,255,0.14); }
-  .modal-btn.confirm:active { background: rgba(92,192,149,0.28); }
+.setup-body { flex: 1; overflow-y: auto; padding: 20px 18px 16px; }
+.setup-step { display: flex; flex-direction: column; gap: 16px; }
+.setup-field { display: flex; flex-direction: column; gap: 6px; }
 
-  /* ── CHEVRON ── */
-  .chevron { display: inline-block; transition: transform .25s ease; font-size: 12px; color: var(--text-dim); }
-  .chevron.open { transform: rotate(180deg); }
+.classe-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+.classe-btn { padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: rgba(240,242,245,0.75); font-size: 13px; font-weight: 500; text-align: left; transition: all .15s ease; cursor: pointer; }
+.classe-btn.sel { border-color: var(--green-border); background: var(--green-bg); color: var(--green); font-weight: 700; }
 
-  /* ── LEGEND ── */
-  .legend { font-family: var(--mono); font-size: 9px; letter-spacing: 0.5px; color: var(--text-faint); display: flex; align-items: center; gap: 7px; margin-top: 12px; }
-  .legend-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; }
+.lv-row { display: flex; align-items: center; gap: 14px; }
+.lv-num { font-size: 28px; font-weight: 800; min-width: 48px; text-align: center; }
+.prof-hint { font-family: var(--mono); font-size: 10px; color: var(--text-faint); margin-left: 4px; }
+
+.btn-setup-step { width: 42px; height: 42px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.07); color: var(--text); font-size: 22px; font-weight: 300; display: flex; align-items: center; justify-content: center; }
+.btn-setup-step:hover { background: rgba(255,255,255,0.14); }
+.btn-setup-step.sm { width: 32px; height: 32px; border-radius: 9px; font-size: 16px; }
+
+.stat-setup-row { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 13px 14px; display: flex; align-items: center; gap: 12px; }
+.stat-setup-lbl { font-family: var(--mono); font-size: 11px; font-weight: 600; color: rgba(240,242,245,0.7); width: 34px; flex-shrink: 0; }
+.stat-setup-val { font-size: 24px; font-weight: 800; min-width: 38px; text-align: center; }
+.stat-setup-mod { font-size: 22px; font-weight: 800; min-width: 44px; text-align: right; }
+.stat-setup-mod.pos { color: var(--green); }
+.stat-setup-mod.neg { color: rgba(240,242,245,0.5); }
+
+.toggle-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 8px; }
+.toggle-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.toggle-chip { padding: 10px 8px; border-radius: 12px; text-align: center; cursor: pointer; font-family: var(--mono); font-size: 12px; font-weight: 500; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: rgba(240,242,245,0.6); transition: all .15s ease; }
+.toggle-chip.sm { font-size: 13px; font-family: var(--sans); padding: 9px 10px; }
+.toggle-chip.on { border-color: var(--green-border); background: var(--green-bg); color: var(--green); font-weight: 700; }
+
+.atk-setup-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
+.atk-setup-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.atk-setup-lbl { font-family: var(--mono); font-size: 9.5px; color: var(--text-dim); }
+.btn-remove { font-size: 12px; color: var(--text-faint); background: none; border: none; cursor: pointer; padding: 2px 6px; }
+.input-sm { padding: 10px 12px; font-size: 13px; border-radius: 10px; }
+.input-row { display: flex; gap: 8px; margin-top: 8px; }
+.input-row input { border-radius: 10px; padding: 10px 12px; font-size: 13px; }
+
+.spell-input-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+.spell-lv-num { font-family: var(--mono); font-size: 11px; color: rgba(240,242,245,0.7); min-width: 20px; text-align: center; flex-shrink: 0; }
+.btn-add-dashed { width: 100%; padding: 11px; border-radius: 12px; border: 1px dashed rgba(92,192,149,0.45); background: rgba(92,192,149,0.08); color: var(--green); font-size: 13px; font-weight: 600; margin-top: 4px; }
+.btn-add-dashed.grey { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.04); color: rgba(240,242,245,0.6); }
+.btn-add-atk { width: 100%; padding: 13px; border-radius: 14px; border: 1px dashed rgba(92,192,149,0.45); background: rgba(92,192,149,0.08); color: var(--green); font-size: 14px; font-weight: 600; }
+
+.setup-footer { padding: 14px 18px 28px; border-top: 1px solid var(--border); display: flex; gap: 10px; flex-shrink: 0; }
+.btn-back { flex: 1; padding: 14px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.07); color: var(--text); font-size: 15px; font-weight: 600; }
+.btn-next { flex: 2; padding: 14px; border-radius: 14px; border: none; background: var(--green); color: #1d1f24; font-size: 15px; font-weight: 700; }
+.btn-next:hover { background: #6fd4a8; }
+
+.no-char-screen { display: none; position: absolute; inset: 0; z-index: 50; background: var(--surface); flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px; gap: 20px; }
+.phone-frame.no-char .no-char-screen { display: flex; }
+.no-char-screen .icon { font-size: 40px; opacity: 0.3; }
+.no-char-screen .title { font-size: 20px; font-weight: 700; }
+.no-char-screen .sub { font-size: 14px; color: var(--text-dim); line-height: 1.55; }
+.no-char-screen .btn-start { padding: 14px 32px; border-radius: 14px; border: none; background: var(--green); color: #1d1f24; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+@media (max-width: 440px) {
+  .phone-frame { border-radius: 0; box-shadow: none; height: 100vh; width: 100vw; }
+  .phone-wrap { width: 100%; }
+  #app { padding: 0; }
+  .page-header { display: none; }
+}
 </style>
 </head>
 <body>
-
 <div id="app">
-  <div id="header">
-    <div class="char-row">
-      <div>
-        <div class="char-name" id="h-name"></div>
-        <div class="char-sub" id="h-sub"></div>
-      </div>
-      <div class="level-badge" id="h-level"></div>
-    </div>
-    <div>
-      <div class="hp-row">
-        <span class="hp-label">PF</span>
-        <span class="hp-val"><span id="h-pf"></span> / <span id="h-pfmax"></span></span>
-      </div>
-      <div class="bar-track"><div class="bar-fill" id="h-bar"></div></div>
-    </div>
-    <div class="cond-chips" id="h-conds" style="display:none"></div>
-    <div class="nav-row">
-      <div id="dots"></div>
-      <span class="nav-label" id="nav-label"></span>
-      <span class="nav-num" id="nav-num"></span>
-    </div>
+  <div class="page-header">
+    <div class="tag">Scheda D&amp;D 5e · Essenziale</div>
+    <h1>Il tuo personaggio</h1>
+    <p>6 sezioni · swipe o tocca i punti per navigare</p>
   </div>
+  <div class="phone-wrap">
+    <div class="phone-frame" id="frame">
 
-  <div id="carousel-wrap">
-    <div id="track">
-
-      <!-- 1 · STATO -->
-      <div class="section" id="sec-0">
-
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <span class="card-label" style="margin:0">PUNTI FERITA</span>
-            <span class="temp-badge" id="temp-badge" style="display:none"></span>
+      <!-- HEADER -->
+      <div class="char-header" id="charHeader">
+        <div class="char-header-top">
+          <div>
+            <div class="char-name" id="hdrName">—</div>
+            <div class="char-sub" id="hdrSub">—</div>
           </div>
-          <div class="hp-controls">
-            <button class="btn-round" id="dec-pf" aria-label="Riduci PF">−</button>
-            <div style="text-align:center">
-              <div class="hp-big" id="pf-display"></div>
-              <div style="font-family:var(--mono);font-size:10.5px;letter-spacing:1px;color:var(--text-dim);margin-top:5px">/ <span id="pfmax-display"></span> MAX</div>
-            </div>
-            <button class="btn-round green" id="inc-pf" aria-label="Aumenta PF">+</button>
+          <div class="char-header-right">
+            <div class="lv-badge">LIV <span id="hdrLv">1</span></div>
+            <button class="btn-gear" onclick="openSetup()">&#9881;</button>
           </div>
-          <div class="bar-track-lg"><div class="bar-fill" id="pf-bar"></div></div>
-          <div class="hp-hint">tieni premuto per valore esatto</div>
         </div>
+        <div class="pf-bar-wrap">
+          <div class="pf-bar-labels">
+            <span class="lbl">PF</span>
+            <span class="val"><span id="hdrPf">10</span> / <span id="hdrPfMax">10</span></span>
+          </div>
+          <div class="bar-track"><div class="bar-fill" id="hdrBar" style="width:100%;background:var(--green)"></div></div>
+        </div>
+        <div class="conditions-active" id="hdrConds"></div>
+        <div class="section-nav">
+          <div class="dots" id="navDots"></div>
+          <span class="section-name" id="navLabel">Stato</span>
+          <span class="section-num" id="navNum">1 / 6</span>
+        </div>
+      </div>
 
-        <div class="card" id="temp-card" style="display:none">
-          <div style="display:flex;align-items:center;justify-content:space-between">
+      <!-- CAROSELLO -->
+      <div class="carousel-outer" id="carouselOuter">
+        <div class="carousel-track" id="carouselTrack">
+
+          <!-- 1 STATO -->
+          <div class="section-panel" id="sec0">
+            <div class="pf-card">
+              <div class="pf-card-top">
+                <span class="card-label">PUNTI FERITA</span>
+                <span class="temp-badge" id="tempBadge" style="display:none">TEMP +<span id="pfTempVal">0</span></span>
+              </div>
+              <div class="pf-stepper">
+                <button class="btn-round" onclick="adj('pf',-1)">&#8722;</button>
+                <div style="text-align:center">
+                  <div class="pf-number" id="pfNum">10</div>
+                  <div class="pf-max">/ <span id="pfMaxDisp">10</span> MAX</div>
+                </div>
+                <button class="btn-round green" onclick="adj('pf',1)">+</button>
+              </div>
+              <div class="bar-lg"><div class="bar-fill" id="pfBar" style="width:100%;background:var(--green)"></div></div>
+            </div>
+            <div class="card" id="tempCard" style="display:none">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div>
+                  <div class="card-label">PF TEMPORANEI</div>
+                  <div style="font-size:26px;font-weight:700;color:var(--green);margin-top:2px;line-height:1" id="pfTempDisp">0</div>
+                </div>
+                <div style="display:flex;gap:8px">
+                  <button class="btn-sq lg" onclick="adj('pfTemp',-1)">&#8722;</button>
+                  <button class="btn-sq lg" onclick="adj('pfTemp',1)">+</button>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div style="display:flex;justify-content:space-between;align-items:baseline">
+                <span class="card-label">DADI VITA · <span id="hdTypeLbl">d8</span></span>
+                <span style="font-size:17px;font-weight:700"><span id="hdAvailDisp">1</span> <span style="font-size:13px;font-weight:500;color:var(--text-dim)">/ <span id="hdTotalDisp">1</span></span></span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:13px">
+                <div class="hd-pips" id="hdPips"></div>
+                <div style="display:flex;gap:8px;flex-shrink:0">
+                  <button class="btn-sq md" onclick="adj('hdAvail',-1)">&#8722;</button>
+                  <button class="btn-sq md" onclick="adj('hdAvail',1)">+</button>
+                </div>
+              </div>
+            </div>
+            <div class="card" onclick="toggleInsp()" style="cursor:pointer">
+              <div class="toggle-row">
+                <div style="display:flex;align-items:center;gap:11px">
+                  <span style="color:var(--green);font-size:14px">&#9670;</span>
+                  <span style="font-size:16px;font-weight:600">Ispirazione</span>
+                </div>
+                <div class="toggle-track off" id="inspTrack"><div class="toggle-knob"></div></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="cond-header" onclick="toggleCondOpen()">
+                <span class="card-label">CONDIZIONI</span>
+                <div style="display:flex;align-items:center;gap:11px">
+                  <span class="cond-count" id="condCount">0 attive</span>
+                  <span class="chevron" id="condChevron">&#9662;</span>
+                </div>
+              </div>
+              <div class="cond-grid-wrap" id="condWrap" style="max-height:0;opacity:0;margin-top:0">
+                <div class="cond-grid" id="condGrid"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2 COMBATTIMENTO -->
+          <div class="section-panel" id="sec1">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+              <div class="card" style="text-align:center;border-radius:16px;padding:15px 12px">
+                <div class="card-label" style="font-size:9px;letter-spacing:1.2px">CA</div>
+                <div style="font-size:34px;font-weight:800;margin-top:5px;line-height:1" id="caDisp">10</div>
+              </div>
+              <div class="card" style="text-align:center;border-radius:16px;padding:15px 12px">
+                <div class="card-label" style="font-size:9px;letter-spacing:1.2px">INIZIATIVA</div>
+                <div style="font-size:34px;font-weight:800;margin-top:5px;line-height:1" id="initDisp">+0</div>
+              </div>
+              <div class="card" style="text-align:center;border-radius:16px;padding:15px 12px">
+                <div class="card-label" style="font-size:9px;letter-spacing:1.2px">VEL.</div>
+                <div style="font-size:34px;font-weight:800;margin-top:5px;line-height:1" id="velDisp">9<span style="font-size:15px;font-weight:500;color:var(--text-dim);margin-left:2px">m</span></div>
+              </div>
+            </div>
+            <div class="card">
+              <span class="card-label">TIRI SALVEZZA</span>
+              <div class="stat-grid" id="savGrid"></div>
+              <div class="prof-legend"><span class="dot-green"></span> competente</div>
+            </div>
+            <div class="card">
+              <span class="card-label">ATTACCHI</span>
+              <div class="atk-header">
+                <span style="flex:1">ARMA</span>
+                <span style="width:56px;text-align:center">COLPIRE</span>
+                <span style="width:92px;text-align:right">DANNO</span>
+              </div>
+              <div id="atkList"></div>
+            </div>
+          </div>
+
+          <!-- 3 ABILITA' -->
+          <div class="section-panel" id="sec2">
+            <div class="card" style="padding:14px 14px 6px">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:0 2px 4px">
+                <span class="card-label">ABILIT&Agrave;</span>
+                <span style="font-family:var(--mono);font-size:9px;color:var(--text-faint);display:flex;align-items:center;gap:6px"><span class="dot-green" style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block"></span> competente</span>
+              </div>
+              <div id="skillList"></div>
+            </div>
+          </div>
+
+          <!-- 4 MAGIA -->
+          <div class="section-panel" id="sec3">
+            <div id="magiaContent"></div>
+          </div>
+
+          <!-- 5 INVENTARIO -->
+          <div class="section-panel" id="sec4">
+            <div class="card">
+              <span class="card-label">OGGETTI</span>
+              <div id="itemList"></div>
+            </div>
+            <div class="card">
+              <span class="card-label">MONETE</span>
+              <div id="goldList"></div>
+            </div>
+          </div>
+
+          <!-- 6 PERSONAGGIO -->
+          <div class="section-panel" id="sec5">
+            <div class="char-section">
+              <div class="card-label">BACKGROUND</div>
+              <div class="card-title" id="charBg">—</div>
+            </div>
+            <div class="char-section">
+              <div class="card-label">TRATTI DELLA PERSONALIT&Agrave;</div>
+              <p id="charTratti">—</p>
+            </div>
+            <div class="char-section">
+              <div class="card-label">IDEALI &middot; LEGAMI &middot; DIFETTI</div>
+              <div style="margin-top:10px">
+                <div class="ild-item"><span class="ild-lbl">IDEALE</span><p id="charIdeale">—</p></div>
+                <div class="ild-item"><span class="ild-lbl">LEGAME</span><p id="charLegame">—</p></div>
+                <div class="ild-item"><span class="ild-lbl red">DIFETTO</span><p id="charDifetto">—</p></div>
+              </div>
+            </div>
+            <div class="char-section">
+              <div class="card-label" style="margin-bottom:10px">NOTE LIBERE</div>
+              <textarea class="note-area" id="noteArea" placeholder="Annota qui..."></textarea>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- NO CHAR SCREEN -->
+      <div class="no-char-screen">
+        <div class="icon">🎲</div>
+        <div class="title">Nessun personaggio</div>
+        <div class="sub">Crea il tuo personaggio<br>per iniziare a giocare.</div>
+        <button class="btn-start" onclick="openSetup()">Crea Personaggio</button>
+      </div>
+
+      <!-- SETUP OVERLAY -->
+      <div class="setup-overlay" id="setupOverlay" style="display:none">
+        <div class="setup-header">
+          <div class="setup-header-row">
             <div>
-              <div class="card-label">PF TEMPORANEI</div>
-              <div style="font-size:26px;font-weight:700;color:var(--green);margin-top:2px;line-height:1" id="pftemp-display"></div>
+              <div class="setup-tag">Setup personaggio</div>
+              <div class="setup-title" id="setupTitle">Anagrafica</div>
             </div>
-            <div style="display:flex;gap:8px">
-              <button class="btn-sq" id="dec-temp">−</button>
-              <button class="btn-sq" id="inc-temp">+</button>
-            </div>
+            <button class="btn-close" id="setupCloseBtn" onclick="closeSetup()">&#10005;</button>
           </div>
+          <div class="setup-progress" id="setupProgress"></div>
         </div>
-
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:baseline">
-            <span class="card-label" style="margin:0">DADI VITA · d10</span>
-            <span style="font-size:17px;font-weight:700" id="hd-display"></span>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:13px">
-            <div style="display:flex;gap:7px" id="hd-pips"></div>
-            <div style="display:flex;gap:8px">
-              <button class="btn-sm" id="use-hd">−</button>
-              <button class="btn-sm" id="rec-hd">+</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="card" id="insp-row" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer">
-          <div style="display:flex;align-items:center;gap:11px">
-            <span style="color:var(--green);font-size:14px">◆</span>
-            <span style="font-size:16px;font-weight:600">Ispirazione</span>
-          </div>
-          <div class="toggle-track" id="insp-track">
-            <span class="toggle-knob" id="insp-knob"></span>
-          </div>
-        </div>
-
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" id="cond-header">
-            <span class="card-label" style="margin:0">CONDIZIONI</span>
-            <div style="display:flex;align-items:center;gap:11px">
-              <span style="font-family:var(--mono);font-size:10px;color:var(--red)" id="cond-count"></span>
-              <span class="chevron" id="cond-chevron">▾</span>
-            </div>
-          </div>
-          <div class="cond-grid" id="cond-grid"></div>
-        </div>
-
+        <div class="setup-body" id="setupBody"></div>
+        <div class="setup-footer" id="setupFooter"></div>
       </div>
 
-      <!-- 2 · COMBATTIMENTO -->
-      <div class="section" id="sec-1">
-        <div class="stats-grid-3">
-          <div class="stat-card"><div class="stat-label">CA</div><div class="stat-val" id="ca-val"></div></div>
-          <div class="stat-card"><div class="stat-label">INIZIATIVA</div><div class="stat-val" id="ini-val"></div></div>
-          <div class="stat-card"><div class="stat-label">VELOCITÀ</div><div class="stat-val" id="spd-val"></div></div>
-        </div>
-        <div class="card">
-          <span class="card-label">TIRI SALVEZZA</span>
-          <div class="saves-grid" id="saves-grid"></div>
-          <div class="legend"><span class="legend-dot"></span> competente</div>
-        </div>
-        <div class="card">
-          <span class="card-label">ATTACCHI</span>
-          <div class="attack-header">
-            <span style="flex:1">ARMA</span><span style="width:56px;text-align:center">COLPIRE</span><span style="width:92px;text-align:right">DANNO</span>
-          </div>
-          <div id="attacks-list"></div>
-        </div>
-      </div>
-
-      <!-- 3 · ABILITÀ -->
-      <div class="section" id="sec-2">
-        <div class="card" style="padding:14px 14px 6px">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:0 2px 4px">
-            <span class="card-label" style="margin:0">ABILITÀ</span>
-            <span class="legend"><span class="legend-dot"></span> competente</span>
-          </div>
-          <div id="skills-list"></div>
-        </div>
-      </div>
-
-      <!-- 4 · MAGIA -->
-      <div class="section" id="sec-3">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div class="stat-card"><div class="stat-label">CD TIRO SALVEZZA</div><div class="stat-val" id="spell-dc"></div></div>
-          <div class="stat-card"><div class="stat-label">ATTACCO INCANT.</div><div class="stat-val" id="spell-atk"></div></div>
-        </div>
-        <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:0.5px;color:rgba(240,242,245,0.4);text-align:center;margin-top:-4px" id="spell-ability-label"></div>
-        <div class="card">
-          <span class="card-label">SLOT INCANTESIMI</span>
-          <div id="slot-rows"></div>
-          <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.5px;color:var(--text-faint);margin-top:14px">tocca uno slot per usarlo / liberarlo</div>
-        </div>
-        <div class="card">
-          <span class="card-label">INCANTESIMI PREPARATI</span>
-          <div id="prepared-list"></div>
-        </div>
-      </div>
-
-      <!-- 5 · INVENTARIO -->
-      <div class="section" id="sec-4">
-        <div class="card">
-          <span class="card-label">OGGETTI</span>
-          <div id="items-list"></div>
-        </div>
-        <div class="card">
-          <span class="card-label">MONETE</span>
-          <div id="gold-list"></div>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px">
-          <span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;color:rgba(240,242,245,0.4)">PESO TRASPORTATO</span>
-          <span style="font-size:14px;font-weight:600;color:rgba(240,242,245,0.75)" id="weight-display"></span>
-        </div>
-      </div>
-
-      <!-- 6 · PERSONAGGIO -->
-      <div class="section" id="sec-5">
-        <div class="card">
-          <span class="card-label">BACKGROUND</span>
-          <div class="char-card-title" id="char-background"></div>
-        </div>
-        <div class="card">
-          <span class="card-label">TRATTI DELLA PERSONALITÀ</span>
-          <p class="char-text" id="char-traits"></p>
-        </div>
-        <div class="card">
-          <span class="card-label">IDEALI · LEGAMI · DIFETTI</span>
-          <div class="tag-block" id="tag-block"></div>
-        </div>
-        <div class="card">
-          <span class="card-label">NOTE LIBERE</span>
-          <textarea class="notes" id="notes-area" placeholder="Annota qui…"></textarea>
-        </div>
-      </div>
-
-    </div><!-- #track -->
-  </div><!-- #carousel-wrap -->
-</div><!-- #app -->
-
-<!-- Toolbar salva/carica -->
-<div id="toolbar">
-  <button class="tool-btn" id="btn-save">↓ Salva JSON</button>
-  <button class="tool-btn" id="btn-load">↑ Carica JSON</button>
-  <button class="tool-btn" id="btn-rest">⟳ Riposo lungo</button>
-  <input type="file" id="file-input" accept=".json">
-</div>
-
-<!-- Modal input esatto HP -->
-<div id="modal-overlay">
-  <div id="modal-box">
-    <h3 id="modal-title">Imposta PF</h3>
-    <input type="number" id="modal-input" inputmode="numeric" min="0">
-    <div class="modal-btns">
-      <button class="modal-btn" id="modal-cancel">Annulla</button>
-      <button class="modal-btn confirm" id="modal-confirm">Conferma</button>
     </div>
   </div>
 </div>
-
 <script>
-// ══════════════════════════════════════════════
-//  DATI STATICI DEL PERSONAGGIO
-// ══════════════════════════════════════════════
-const CHAR = {
-  name: 'Theron Aldebrand',
-  sub: 'Paladino · Umano',
-  level: 5,
-  hdDie: 10,
-  ca: 18,
-  initiative: '+0',
-  speed: '9 m',
-  spellDC: 14,
-  spellAtk: '+6',
-  spellAbility: 'caratteristica da incantatore · CARISMA',
-  background: 'Nobile decaduto',
-  traits: 'Parlo con autorità tranquilla: anche i veterani tendono ad ascoltare. Non lascio mai un compagno indietro, costi quel che costi.',
-  ideals: 'Il potere esiste per proteggere i deboli, non per opprimerli.',
-  bond: 'Ho giurato di vendicare la rovina di Casa Aldebrand.',
-  flaw: "Antepongo l'onore alla prudenza, anche quando mi costa caro.",
-  savingThrows: [
-    { abil: 'FOR', mod: '+3', prof: false },
-    { abil: 'DES', mod: '+0', prof: false },
-    { abil: 'COS', mod: '+2', prof: false },
-    { abil: 'INT', mod: '−1', prof: false },
-    { abil: 'SAG', mod: '+4', prof: true },
-    { abil: 'CAR', mod: '+6', prof: true },
-  ],
-  attacks: [
-    { name: 'Spada lunga', sub: '', hit: '+6', dmg: '1d8+3', type: 'tagliente' },
-    { name: 'Spada lunga', sub: '2 mani', hit: '+6', dmg: '1d10+3', type: 'tagliente' },
-    { name: 'Giavellotto', sub: '9/36 m', hit: '+6', dmg: '1d6+3', type: 'perforante' },
-  ],
-  skills: [
-    { name: 'Percezione',        abil: 'SAG', mod: '+1', prof: false, hi: true  },
-    { name: 'Acrobazia',         abil: 'DES', mod: '+0', prof: false },
-    { name: 'Addestrare animali',abil: 'SAG', mod: '+1', prof: false },
-    { name: 'Arcano',            abil: 'INT', mod: '−1', prof: false },
-    { name: 'Atletica',          abil: 'FOR', mod: '+6', prof: true  },
-    { name: 'Furtività',         abil: 'DES', mod: '+0', prof: false },
-    { name: 'Indagare',          abil: 'INT', mod: '−1', prof: false },
-    { name: 'Inganno',           abil: 'CAR', mod: '+3', prof: false },
-    { name: 'Intimidire',        abil: 'CAR', mod: '+6', prof: true  },
-    { name: 'Intrattenere',      abil: 'CAR', mod: '+3', prof: false },
-    { name: 'Intuizione',        abil: 'SAG', mod: '+4', prof: true  },
-    { name: 'Medicina',          abil: 'SAG', mod: '+1', prof: false },
-    { name: 'Natura',            abil: 'INT', mod: '−1', prof: false },
-    { name: 'Persuasione',       abil: 'CAR', mod: '+6', prof: true  },
-    { name: 'Rapidità di mano',  abil: 'DES', mod: '+0', prof: false },
-    { name: 'Religione',         abil: 'INT', mod: '−1', prof: false },
-    { name: 'Sopravvivenza',     abil: 'SAG', mod: '+1', prof: false },
-    { name: 'Storia',            abil: 'INT', mod: '−1', prof: false },
-  ],
-  spellSlots: [
-    { level: 1, total: 4 },
-    { level: 2, total: 2 },
-  ],
-  spells: [
-    { name: 'Benedizione',          lvl: 1 },
-    { name: 'Comando',              lvl: 1 },
-    { name: 'Cura ferite',          lvl: 1 },
-    { name: 'Punizione marchiante', lvl: 1 },
-    { name: 'Arma spirituale',      lvl: 2 },
-    { name: 'Aiuto',                lvl: 2 },
-  ],
-  items: [
-    { name: 'Pozione di guarigione', type: 'qty' },
-    { name: 'Giavellotto',           type: 'qty' },
-    { name: 'Razioni',               type: 'qty', detail: 'giorni' },
-    { name: 'Amuleto del voto',      type: 'charge', max: 3 },
-    { name: 'Corda di canapa',       type: 'static', detail: '15 m' },
-    { name: 'Simbolo sacro',         type: 'static', detail: '—' },
-  ],
-  goldDefs: [
-    { k: 'mr', label: 'MR', name: 'Rame' },
-    { k: 'ma', label: 'MA', name: 'Argento' },
-    { k: 'mo', label: 'MO', name: 'Oro' },
-    { k: 'me', label: 'ME', name: 'Electrum' },
-    { k: 'mp', label: 'MP', name: 'Platino' },
-  ],
-  weightCarried: '≈ 38',
-  weightMax: 240,
-};
+// ── COSTANTI ──
+const CLASSI = [
+  {name:'Barbaro',hd:'d12'},{name:'Bardo',hd:'d8'},{name:'Chierico',hd:'d8'},
+  {name:'Druido',hd:'d8'},{name:'Guerriero',hd:'d10'},{name:'Ladro',hd:'d8'},
+  {name:'Mago',hd:'d6'},{name:'Monaco',hd:'d8'},{name:'Paladino',hd:'d10'},
+  {name:'Ranger',hd:'d10'},{name:'Stregone',hd:'d6'},{name:'Warlock',hd:'d8'}
+];
+const SKILLS = [
+  {name:'Percezione',      abil:'sag', key:'SAG', hi:true},
+  {name:'Acrobazia',       abil:'des', key:'DES'},
+  {name:'Addestrare Ani.', abil:'sag', key:'SAG'},
+  {name:'Arcano',          abil:'int', key:'INT'},
+  {name:'Atletica',        abil:'for', key:'FOR'},
+  {name:'Furtività',       abil:'des', key:'DES'},
+  {name:'Indagare',        abil:'int', key:'INT'},
+  {name:'Inganno',         abil:'car', key:'CAR'},
+  {name:'Insight',         abil:'sag', key:'SAG'},
+  {name:'Intimidire',      abil:'car', key:'CAR'},
+  {name:'Intrattenere',    abil:'car', key:'CAR'},
+  {name:'Medicina',        abil:'sag', key:'SAG'},
+  {name:'Natura',          abil:'int', key:'INT'},
+  {name:'Persuasione',     abil:'car', key:'CAR'},
+  {name:'Prestidigitaz.',  abil:'des', key:'DES'},
+  {name:'Religione',       abil:'int', key:'INT'},
+  {name:'Storia',          abil:'int', key:'INT'},
+  {name:'Sopravvivenza',   abil:'sag', key:'SAG'},
+];
+const SAV_KEYS = ['for','des','cos','int','sag','car'];
+const SAV_LABELS = {for:'FOR',des:'DES',cos:'COS',int:'INT',sag:'SAG',car:'CAR'};
+const SAV_NAMES = {for:'Forza',des:'Destrezza',cos:'Costituzione',int:'Intelligenza',sag:'Saggezza',car:'Carisma'};
+const GOLDDEFS = [
+  {k:'mr',label:'MR',name:'Rame'},
+  {k:'ma',label:'MA',name:'Argento'},
+  {k:'mo',label:'MO',name:'Oro'},
+  {k:'me',label:'ME',name:'Electrum'},
+  {k:'mp',label:'MP',name:'Platino'},
+];
+const CONDS = [
+  'Accecato','Affascinato','Afferrato','Assordato','Avvelenato',
+  'Incapacitato','Indebolimento','Invisibile','Paralizzato',
+  'Pietrificato','Privo di sensi','Prono','Spaventato','Stordito','Trattenuto'
+];
+const SETUP_STEPS = ['Anagrafica','Caratteristiche','Proficienze','Combattimento','Attacchi','Magia','Inventario & Personaggio'];
+const PROF_TABLE = {1:2,2:2,3:2,4:2,5:3,6:3,7:3,8:3,9:4,10:4,11:4,12:4,13:5,14:5,15:5,16:5,17:6,18:6,19:6,20:6};
 
-const CONDS = ['Accecato','Affascinato','Afferrato','Assordato','Avvelenato','Incapacitato','Indebolimento','Invisibile','Paralizzato','Pietrificato','Privo di sensi','Prono','Spaventato','Stordito','Trattenuto'];
-const SECTIONS = ['Stato','Combattimento','Abilità','Magia','Inventario','Personaggio'];
+// ── STATO ──
+const SKEY = 'dnd5e_scheda';
+let S = null;  // stato live
+let C = null;  // dati personaggio
 
-// ══════════════════════════════════════════════
-//  STATO (dati mutabili, salvati in JSON)
-// ══════════════════════════════════════════════
-let state = {
-  pf: 47, pfMax: 52, pfTemp: 7,
-  hdAvail: 3,
-  inspiration: true,
-  condOpen: true,
-  active: { Avvelenato: true },
-  slots: { 1: [false,false,false,false], 2: [false,false] },
-  prepared: { 'Benedizione': true, 'Comando': true, 'Cura ferite': true, 'Punizione marchiante': false, 'Arma spirituale': true, 'Aiuto': true },
-  qty: { 'Pozione di guarigione': 3, 'Giavellotto': 5, 'Razioni': 7 },
-  charges: { 'Amuleto del voto': 2 },
-  gold: { mr: 0, ma: 12, mo: 84, me: 0, mp: 6 },
-  note: "Cerca i responsabili dell'incendio che distrusse la dimora di famiglia. Non sa ancora che uno di loro siede nel consiglio della città.",
+const DEF_STATE = () => ({
   section: 0,
-};
-
-function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
-function hpColor(pct) {
-  if (pct <= 25) return '#e0867a';
-  if (pct <= 50) return '#e0b25a';
-  return '#5cc095';
-}
-
-// ══════════════════════════════════════════════
-//  RENDER
-// ══════════════════════════════════════════════
-function render() {
-  const s = state;
-  const pct = s.pfMax > 0 ? Math.round(s.pf / s.pfMax * 100) : 0;
-  const col = hpColor(pct);
-  const activeNames = CONDS.filter(c => s.active[c]);
-
-  // Header
-  document.getElementById('h-name').textContent = CHAR.name;
-  document.getElementById('h-sub').textContent = CHAR.sub;
-  document.getElementById('h-level').textContent = `LIV ${CHAR.level}`;
-  document.getElementById('h-pf').textContent = s.pf;
-  document.getElementById('h-pfmax').textContent = s.pfMax;
-  const hBar = document.getElementById('h-bar');
-  hBar.style.width = pct + '%';
-  hBar.style.background = col;
-
-  const hConds = document.getElementById('h-conds');
-  if (activeNames.length > 0) {
-    hConds.style.display = 'flex';
-    hConds.innerHTML = activeNames.map(n => `<span class="cond-chip">${n}</span>`).join('');
-  } else {
-    hConds.style.display = 'none';
+  pf: 10,
+  pfTemp: 0,
+  hdAvail: 1,
+  inspiration: false,
+  condOpen: false,
+  active: {},
+  slots: {},
+  prepared: {},
+  qty: {},
+  gold: {mr:0,ma:0,mo:0,me:0,mp:0},
+  note: '',
+  char: {
+    nome:'', classe:'Guerriero', livello:1, razza:'', background:'',
+    stats:{for:10,des:10,cos:10,int:10,sag:10,car:10},
+    profBonus:2, savProf:[], abilProf:[],
+    ca:10, velocita:9, pfMax:10,
+    attacchi:[], spellAbil:'int', spellSlots:{},
+    incantesimi:[], items:[],
+    tratti:'', ideale:'', legame:'', difetto:''
   }
-
-  // Dots nav
-  const dotsEl = document.getElementById('dots');
-  dotsEl.style.display = 'flex';
-  dotsEl.style.gap = '5px';
-  dotsEl.style.alignItems = 'center';
-  dotsEl.innerHTML = SECTIONS.map((_, i) => {
-    const active = i === s.section;
-    return `<span class="dot${active?' active':''}" style="width:${active?18:6}px" data-idx="${i}"></span>`;
-  }).join('');
-  dotsEl.querySelectorAll('.dot').forEach(d => d.addEventListener('click', () => goTo(+d.dataset.idx)));
-  document.getElementById('nav-label').textContent = SECTIONS[s.section];
-  document.getElementById('nav-num').textContent = `${s.section+1} / ${SECTIONS.length}`;
-
-  // Track position
-  document.getElementById('track').style.transform = `translateX(${-s.section * 100}%)`;
-
-  // ── STATO ──
-  document.getElementById('pf-display').textContent = s.pf;
-  document.getElementById('pfmax-display').textContent = s.pfMax;
-  const pfBar = document.getElementById('pf-bar');
-  pfBar.style.width = pct + '%';
-  pfBar.style.background = col;
-
-  const tempBadge = document.getElementById('temp-badge');
-  const tempCard = document.getElementById('temp-card');
-  if (s.pfTemp > 0) {
-    tempBadge.style.display = '';
-    tempBadge.textContent = `TEMP +${s.pfTemp}`;
-    tempCard.style.display = '';
-    document.getElementById('pftemp-display').textContent = s.pfTemp;
-  } else {
-    tempBadge.style.display = 'none';
-    tempCard.style.display = 'none';
-  }
-
-  document.getElementById('hd-display').innerHTML = `${s.hdAvail} <span style="font-size:13px;font-weight:500;color:var(--text-dim)">/ ${CHAR.level}</span>`;
-  const hdPips = document.getElementById('hd-pips');
-  hdPips.innerHTML = Array.from({length: CHAR.level}, (_,i) =>
-    `<span class="hd-pip ${i < s.hdAvail ? 'on' : 'off'}"></span>`
-  ).join('');
-
-  const inspTrack = document.getElementById('insp-track');
-  const inspKnob = document.getElementById('insp-knob');
-  inspTrack.style.background = s.inspiration ? 'var(--green)' : 'rgba(255,255,255,0.14)';
-  inspKnob.style.left = s.inspiration ? '23px' : '3px';
-
-  const condCount = document.getElementById('cond-count');
-  condCount.textContent = activeNames.length + (activeNames.length === 1 ? ' attiva' : ' attive');
-  const condGrid = document.getElementById('cond-grid');
-  condGrid.style.maxHeight = s.condOpen ? '1000px' : '0px';
-  condGrid.style.opacity = s.condOpen ? '1' : '0';
-  condGrid.style.marginTop = s.condOpen ? '13px' : '0px';
-  document.getElementById('cond-chevron').className = `chevron${s.condOpen?' open':''}`;
-
-  condGrid.innerHTML = CONDS.map(name => {
-    const on = !!s.active[name];
-    return `<button class="cond-btn${on?' on':''}" data-cond="${name}">${name}</button>`;
-  }).join('');
-  condGrid.querySelectorAll('.cond-btn').forEach(b => b.addEventListener('click', () => toggleCond(b.dataset.cond)));
-
-  // ── COMBATTIMENTO ──
-  document.getElementById('ca-val').textContent = CHAR.ca;
-  document.getElementById('ini-val').textContent = CHAR.initiative;
-  document.getElementById('spd-val').innerHTML = CHAR.speed;
-
-  const savesGrid = document.getElementById('saves-grid');
-  savesGrid.innerHTML = CHAR.savingThrows.map(sv =>
-    `<div class="save-item${sv.prof?' prof':''}">
-      <div class="save-row">
-        <span class="save-abil">${sv.abil}</span>
-        <span class="save-dot"></span>
-      </div>
-      <div class="save-mod" style="color:${sv.prof?'var(--text)':'rgba(240,242,245,0.55)'}">${sv.mod}</div>
-    </div>`
-  ).join('');
-
-  const attacksList = document.getElementById('attacks-list');
-  attacksList.innerHTML = CHAR.attacks.map(a =>
-    `<div class="attack-row">
-      <span class="attack-name">${a.name}${a.sub?` <small>${a.sub}</small>`:''}</span>
-      <span class="attack-hit">${a.hit}</span>
-      <span class="attack-dmg">${a.dmg}<small>${a.type}</small></span>
-    </div>`
-  ).join('');
-
-  // ── ABILITÀ ──
-  const skillsList = document.getElementById('skills-list');
-  skillsList.innerHTML = CHAR.skills.map(sk => {
-    const modColor = sk.prof ? 'var(--green)' : (sk.mod.startsWith('−') ? 'rgba(240,242,245,0.5)' : 'var(--text)');
-    return `<div class="skill-row${sk.hi?' hi':''}">
-      <span class="skill-dot${sk.prof?' prof':''}"></span>
-      <span class="skill-name">${sk.name}</span>
-      <span class="skill-abil">${sk.abil}</span>
-      <span class="skill-mod" style="color:${modColor}">${sk.mod}</span>
-    </div>`;
-  }).join('');
-
-  // ── MAGIA ──
-  document.getElementById('spell-dc').textContent = CHAR.spellDC;
-  document.getElementById('spell-atk').textContent = CHAR.spellAtk;
-  document.getElementById('spell-ability-label').textContent = CHAR.spellAbility;
-
-  const slotRows = document.getElementById('slot-rows');
-  slotRows.innerHTML = CHAR.spellSlots.map(sl => {
-    const usedArr = s.slots[sl.level] || Array(sl.total).fill(false);
-    const pips = Array.from({length: sl.total}, (_,i) =>
-      `<span class="slot-pip${usedArr[i]?' used':''}" data-lvl="${sl.level}" data-idx="${i}"></span>`
-    ).join('');
-    return `<div class="slot-row"><span class="slot-lvl">LIV ${sl.level}</span><div class="slot-pips">${pips}</div></div>`;
-  }).join('');
-  slotRows.querySelectorAll('.slot-pip').forEach(p =>
-    p.addEventListener('click', () => toggleSlot(+p.dataset.lvl, +p.dataset.idx))
-  );
-
-  const prepList = document.getElementById('prepared-list');
-  prepList.innerHTML = CHAR.spells.map(sp => {
-    const on = !!s.prepared[sp.name];
-    return `<div class="prep-row" data-spell="${sp.name}">
-      <span class="prep-dot${on?' on':''}"></span>
-      <span class="prep-name${on?' on':' off'}">${sp.name}</span>
-      <span class="prep-lvl">LIV ${sp.lvl}</span>
-    </div>`;
-  }).join('');
-  prepList.querySelectorAll('.prep-row').forEach(r =>
-    r.addEventListener('click', () => togglePrep(r.dataset.spell))
-  );
-
-  // ── INVENTARIO ──
-  const itemsList = document.getElementById('items-list');
-  itemsList.innerHTML = CHAR.items.map(it => {
-    let stepper = '';
-    let detail = it.detail ? `<span class="inv-detail">${it.detail}</span>` : '';
-    if (it.type === 'qty') {
-      const qty = s.qty[it.name] ?? 0;
-      stepper = `<div class="inv-stepper">
-        <button class="btn-xs" data-action="dec-qty" data-name="${it.name}">−</button>
-        <span class="inv-qty">×${qty}</span>
-        <button class="btn-xs" data-action="inc-qty" data-name="${it.name}">+</button>
-      </div>`;
-    } else if (it.type === 'charge') {
-      const ch = s.charges[it.name] ?? 0;
-      stepper = `<div class="inv-stepper">
-        <button class="btn-xs" data-action="dec-charge" data-name="${it.name}" data-max="${it.max}">−</button>
-        <span class="inv-charge">${ch} / ${it.max}</span>
-        <button class="btn-xs" data-action="inc-charge" data-name="${it.name}" data-max="${it.max}">+</button>
-      </div>`;
-      detail = `<span class="inv-detail">cariche</span>`;
-    }
-    return `<div class="inv-row"><div class="inv-name">${it.name}${detail}</div>${stepper}</div>`;
-  }).join('');
-  itemsList.querySelectorAll('button[data-action]').forEach(b => {
-    b.addEventListener('click', e => {
-      const action = e.target.dataset.action;
-      const name = e.target.dataset.name;
-      const max = +e.target.dataset.max;
-      if (action === 'dec-qty') state.qty[name] = Math.max(0, (state.qty[name]||0) - 1);
-      if (action === 'inc-qty') state.qty[name] = (state.qty[name]||0) + 1;
-      if (action === 'dec-charge') state.charges[name] = clamp((state.charges[name]||0) - 1, 0, max);
-      if (action === 'inc-charge') state.charges[name] = clamp((state.charges[name]||0) + 1, 0, max);
-      render();
-    });
-  });
-
-  const goldList = document.getElementById('gold-list');
-  goldList.innerHTML = CHAR.goldDefs.filter(g => (s.gold[g.k]||0) > 0).map(g =>
-    `<div class="gold-row">
-      <span class="gold-label">${g.label}</span>
-      <span class="gold-name">${g.name}</span>
-      <div class="inv-stepper">
-        <button class="btn-xs" data-action="dec-gold" data-key="${g.k}">−</button>
-        <span class="gold-val">${s.gold[g.k]||0}</span>
-        <button class="btn-xs" data-action="inc-gold" data-key="${g.k}">+</button>
-      </div>
-    </div>`
-  ).join('');
-  goldList.querySelectorAll('button[data-action]').forEach(b => {
-    b.addEventListener('click', e => {
-      const k = e.target.dataset.key;
-      if (e.target.dataset.action === 'dec-gold') state.gold[k] = Math.max(0, (state.gold[k]||0) - 1);
-      else state.gold[k] = (state.gold[k]||0) + 1;
-      render();
-    });
-  });
-
-  document.getElementById('weight-display').innerHTML =
-    `${CHAR.weightCarried} <span style="font-size:11px;color:rgba(240,242,245,0.4)">/ ${CHAR.weightMax} kg</span>`;
-
-  // ── PERSONAGGIO ──
-  document.getElementById('char-background').textContent = CHAR.background;
-  document.getElementById('char-traits').textContent = CHAR.traits;
-  document.getElementById('tag-block').innerHTML = `
-    <div class="tag-entry"><span class="tag-label green">IDEALE</span><p>${CHAR.ideals}</p></div>
-    <div class="tag-entry"><span class="tag-label green">LEGAME</span><p>${CHAR.bond}</p></div>
-    <div class="tag-entry"><span class="tag-label red">DIFETTO</span><p>${CHAR.flaw}</p></div>
-  `;
-  const notesArea = document.getElementById('notes-area');
-  if (notesArea !== document.activeElement) notesArea.value = s.note;
-}
-
-// ══════════════════════════════════════════════
-//  AZIONI
-// ══════════════════════════════════════════════
-function goTo(i) { state.section = clamp(i, 0, SECTIONS.length - 1); render(); }
-
-function toggleCond(name) {
-  if (state.active[name]) delete state.active[name];
-  else state.active[name] = true;
-  render();
-}
-
-function toggleSlot(level, idx) {
-  if (!state.slots[level]) state.slots[level] = Array(CHAR.spellSlots.find(s=>s.level===level).total).fill(false);
-  state.slots[level][idx] = !state.slots[level][idx];
-  render();
-}
-
-function togglePrep(name) { state.prepared[name] = !state.prepared[name]; render(); }
-
-// ══════════════════════════════════════════════
-//  SWIPE GESTURE
-// ══════════════════════════════════════════════
-let _sx = 0, _sy = 0, _drag = false, _dec = false, _horiz = false, _live = 0;
-const track = document.getElementById('track');
-
-track.addEventListener('pointerdown', e => {
-  _sx = e.clientX; _sy = e.clientY;
-  _drag = true; _dec = false; _horiz = false; _live = 0;
-  track.style.transition = 'none';
 });
-track.addEventListener('pointermove', e => {
-  if (!_drag) return;
-  const dx = e.clientX - _sx, dy = e.clientY - _sy;
-  if (!_dec) {
-    if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
-      _dec = true;
-      _horiz = Math.abs(dx) > Math.abs(dy);
-      if (_horiz) e.preventDefault();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(SKEY);
+    if (raw) {
+      const saved = JSON.parse(raw);
+      S = Object.assign(DEF_STATE(), saved);
+      S.char = Object.assign(DEF_STATE().char, saved.char || {});
+      C = S.char;
+      return true;
     }
+  } catch(e) {}
+  S = DEF_STATE();
+  C = S.char;
+  return false;
+}
+
+function saveState() {
+  if (noteArea) S.note = noteArea.value;
+  localStorage.setItem(SKEY, JSON.stringify(S));
+}
+
+// ── CALCOLI ──
+function mod(v) { return Math.floor((v - 10) / 2); }
+function fmtMod(n) { return (n >= 0 ? '+' : '') + n; }
+function pb() { return PROF_TABLE[C.livello] || 2; }
+function spellDC() { return 8 + pb() + mod(C.stats[C.spellAbil] || 10); }
+function spellAtk() { return pb() + mod(C.stats[C.spellAbil] || 10); }
+function hdMax() { return C.livello; }
+function pfPct() {
+  const mx = (C.pfMax || 1) + (S.pfTemp || 0);
+  return Math.max(0, Math.min(100, ((S.pf || 0) / mx) * 100));
+}
+function pfColor() {
+  const p = pfPct();
+  if (p > 50) return 'var(--green)';
+  if (p > 25) return 'var(--gold)';
+  return 'var(--red)';
+}
+
+// ── UI HELPERS ──
+let noteArea;
+
+function el(id) { return document.getElementById(id); }
+
+function renderHeader() {
+  const hdClass = CLASSI.find(c => c.name === C.classe) || CLASSI[4];
+  el('hdrName').textContent = C.nome || '— Personaggio —';
+  el('hdrSub').textContent = `${C.razza || '—'} · ${C.classe}`;
+  el('hdrLv').textContent = C.livello;
+  el('hdrPf').textContent = S.pf;
+  el('hdrPfMax').textContent = C.pfMax;
+  const bar = el('hdrBar');
+  bar.style.width = pfPct() + '%';
+  bar.style.background = pfColor();
+  // conditions
+  const active = Object.entries(S.active).filter(([,v])=>v).map(([k])=>k);
+  const hdrConds = el('hdrConds');
+  hdrConds.innerHTML = '';
+  if (active.length) {
+    active.slice(0,3).forEach(c => {
+      const b = document.createElement('div');
+      b.className = 'cond-badge';
+      b.textContent = c;
+      hdrConds.appendChild(b);
+    });
+    if (active.length > 3) {
+      const b = document.createElement('div');
+      b.className = 'cond-badge';
+      b.textContent = '+' + (active.length - 3);
+      hdrConds.appendChild(b);
+    }
+  }
+}
+
+function renderNav() {
+  const dots = el('navDots');
+  dots.innerHTML = '';
+  const NAMES = ['Stato','Combattimento','Abilità','Magia','Inventario','Personaggio'];
+  NAMES.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === S.section ? ' active' : '');
+    d.onclick = () => gotoSection(i);
+    dots.appendChild(d);
+  });
+  el('navLabel').textContent = NAMES[S.section];
+  el('navNum').textContent = (S.section + 1) + ' / 6';
+}
+
+// ── SEZIONE 0: STATO ──
+function renderStato() {
+  el('pfNum').textContent = S.pf;
+  el('pfMaxDisp').textContent = C.pfMax;
+  const bar = el('pfBar');
+  bar.style.width = pfPct() + '%';
+  bar.style.background = pfColor();
+  // pf temp
+  const tempCard = el('tempCard');
+  const tempBadge = el('tempBadge');
+  if (S.pfTemp > 0) {
+    tempCard.style.display = '';
+    tempBadge.style.display = '';
+    el('pfTempVal').textContent = S.pfTemp;
+    el('pfTempDisp').textContent = S.pfTemp;
+  } else {
+    tempCard.style.display = 'none';
+    tempBadge.style.display = 'none';
+  }
+  // hd
+  const hdClass = CLASSI.find(c => c.name === C.classe) || CLASSI[4];
+  el('hdTypeLbl').textContent = hdClass.hd;
+  const avail = Math.max(0, Math.min(S.hdAvail, hdMax()));
+  el('hdAvailDisp').textContent = avail;
+  el('hdTotalDisp').textContent = hdMax();
+  const pips = el('hdPips');
+  pips.innerHTML = '';
+  for (let i = 0; i < hdMax(); i++) {
+    const p = document.createElement('div');
+    p.className = 'hd-pip ' + (i < avail ? 'on' : 'off');
+    pips.appendChild(p);
+  }
+  // inspiration
+  const track = el('inspTrack');
+  if (S.inspiration) { track.className = 'toggle-track on'; }
+  else { track.className = 'toggle-track off'; }
+  // conditions
+  const active = Object.entries(S.active).filter(([,v])=>v).map(([k])=>k);
+  el('condCount').textContent = active.length + ' attive';
+  const grid = el('condGrid');
+  grid.innerHTML = '';
+  CONDS.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'cond-item' + (S.active[c] ? ' on' : '');
+    div.textContent = c;
+    div.onclick = () => { S.active[c] = !S.active[c]; saveState(); renderAll(); };
+    grid.appendChild(div);
+  });
+  // conditions expand
+  const wrap = el('condWrap');
+  const chev = el('condChevron');
+  if (S.condOpen) {
+    wrap.style.maxHeight = '400px'; wrap.style.opacity = '1'; wrap.style.marginTop = '13px';
+    chev.className = 'chevron open';
+  } else {
+    wrap.style.maxHeight = '0'; wrap.style.opacity = '0'; wrap.style.marginTop = '0';
+    chev.className = 'chevron';
+  }
+}
+
+// ── SEZIONE 1: COMBATTIMENTO ──
+function renderCombattimento() {
+  const desM = mod(C.stats.des);
+  el('caDisp').textContent = C.ca;
+  el('initDisp').textContent = fmtMod(desM);
+  const velM = C.velocita || 9;
+  el('velDisp').innerHTML = velM + '<span style="font-size:15px;font-weight:500;color:var(--text-dim);margin-left:2px">m</span>';
+  // saves
+  const sg = el('savGrid');
+  sg.innerHTML = '';
+  SAV_KEYS.forEach(k => {
+    const v = C.stats[k] || 10;
+    const m = mod(v);
+    const isProf = C.savProf.includes(k);
+    const total = m + (isProf ? pb() : 0);
+    const cell = document.createElement('div');
+    cell.className = 'stat-cell' + (isProf ? ' prof' : '');
+    cell.innerHTML = `<div class="stat-cell-top">
+      <span class="stat-lbl${isProf?' prof':''}">${SAV_LABELS[k]}</span>
+      <div class="stat-dot${isProf?' prof':''}"></div>
+    </div>
+    <div class="stat-mod${isProf?'':' dim'}">${fmtMod(total)}</div>`;
+    sg.appendChild(cell);
+  });
+  // attacks
+  const al = el('atkList');
+  al.innerHTML = '';
+  if (!C.attacchi || !C.attacchi.length) {
+    al.innerHTML = '<div style="padding:14px 0;text-align:center;font-size:13px;color:var(--text-faint)">Nessun attacco configurato</div>';
+  } else {
+    C.attacchi.forEach(a => {
+      const row = document.createElement('div');
+      row.className = 'atk-row';
+      row.innerHTML = `<div class="atk-name">${a.nome||'—'}</div>
+        <div class="atk-bonus">${a.bonus||'+0'}</div>
+        <div class="atk-dmg">${a.danno||'—'}<span class="atk-type">${a.tipo||''}</span></div>`;
+      al.appendChild(row);
+    });
+  }
+}
+
+// ── SEZIONE 2: ABILITÀ ──
+function renderAbilita() {
+  const sl = el('skillList');
+  sl.innerHTML = '';
+  SKILLS.forEach(s => {
+    const v = C.stats[s.abil] || 10;
+    const isProf = C.abilProf.includes(s.name);
+    const total = mod(v) + (isProf ? pb() : 0);
+    const row = document.createElement('div');
+    row.className = 'skill-row' + (s.hi ? ' hi' : '');
+    row.innerHTML = `<div class="skill-dot${isProf?' prof':''}"></div>
+      <div class="skill-name">${s.name}</div>
+      <div class="skill-abil">${s.key}</div>
+      <div class="skill-mod${isProf?' prof':total<0?' dim':''}">${fmtMod(total)}</div>`;
+    sl.appendChild(row);
+  });
+}
+
+// ── SEZIONE 3: MAGIA ──
+function renderMagia() {
+  const mc = el('magiaContent');
+  mc.innerHTML = '';
+  const hasSpells = C.incantesimi && C.incantesimi.length > 0;
+  const hasSlots = C.spellSlots && Object.keys(C.spellSlots).length > 0;
+  if (!hasSpells && !hasSlots) {
+    mc.innerHTML = `<div class="empty-state"><div><div class="icon">✨</div><div class="lbl">Nessun incantesimo</div><div class="hint">Configura la magia nel setup</div></div></div>`;
     return;
   }
-  if (!_horiz) return;
-  e.preventDefault();
-  const s = state.section;
-  let d = dx;
-  if ((s === 0 && d > 0) || (s >= SECTIONS.length - 1 && d < 0)) d *= 0.3;
-  _live = d;
-  track.style.transform = `translateX(calc(${-s * 100}% + ${d}px))`;
-}, { passive: false });
-
-function endSwipe(e) {
-  if (!_drag) return;
-  _drag = false;
-  track.style.transition = 'transform .32s cubic-bezier(.4,0,.2,1)';
-  if (_horiz) {
-    const dx = (e.clientX ?? (e.changedTouches?.[0]?.clientX ?? _sx)) - _sx;
-    let s = state.section;
-    if (dx < -70 && s < SECTIONS.length - 1) s++;
-    else if (dx > 70 && s > 0) s--;
-    state.section = s;
+  // spell stats
+  const abilName = SAV_NAMES[C.spellAbil] || 'Intelligenza';
+  const dc = spellDC(); const atk = spellAtk();
+  const statsDiv = document.createElement('div');
+  statsDiv.className = 'spell-stats';
+  statsDiv.innerHTML = `
+    <div class="spell-stat-card">
+      <div class="spell-stat-lbl">SPELL DC</div>
+      <div class="spell-stat-val">${dc}</div>
+    </div>
+    <div class="spell-stat-card">
+      <div class="spell-stat-lbl">ATTACCO</div>
+      <div class="spell-stat-val">${fmtMod(atk)}</div>
+    </div>`;
+  mc.appendChild(statsDiv);
+  const note = document.createElement('div');
+  note.className = 'spell-abil-note';
+  note.style.marginTop = '2px';
+  note.textContent = 'Abilità: ' + abilName;
+  mc.appendChild(note);
+  // slots
+  if (hasSlots) {
+    const slotCard = document.createElement('div');
+    slotCard.className = 'card';
+    slotCard.style.marginTop = '12px';
+    slotCard.innerHTML = '<span class="card-label">SLOT INCANTESIMO</span>';
+    let firstSlot = true;
+    Object.entries(C.spellSlots).forEach(([lv, tot]) => {
+      const t = parseInt(tot) || 0;
+      if (!t) return;
+      if (!S.slots[lv]) S.slots[lv] = t;
+      const used = t - (S.slots[lv] || 0);
+      const row = document.createElement('div');
+      row.className = 'slot-row';
+      if (firstSlot) { row.style.marginTop = '10px'; firstSlot = false; }
+      row.innerHTML = `<span class="slot-lv">Liv. ${lv}</span><div class="slots-pips" id="slotPips_${lv}"></div>`;
+      slotCard.appendChild(row);
+      // render pips after appending
+      setTimeout(() => {
+        const pipsDiv = document.getElementById('slotPips_' + lv);
+        if (!pipsDiv) return;
+        pipsDiv.innerHTML = '';
+        for (let i = 0; i < t; i++) {
+          const pip = document.createElement('div');
+          pip.className = 'slot-pip ' + (i < (S.slots[lv] || 0) ? 'avail' : 'used');
+          const iCopy = i, lvCopy = lv;
+          pip.onclick = () => toggleSlot(lvCopy, iCopy, t);
+          pipsDiv.appendChild(pip);
+        }
+      }, 0);
+    });
+    mc.appendChild(slotCard);
   }
-  render();
+  // spells
+  if (hasSpells) {
+    const spellCard = document.createElement('div');
+    spellCard.className = 'card';
+    spellCard.style.marginTop = '12px';
+    spellCard.innerHTML = '<span class="card-label">INCANTESIMI</span>';
+    C.incantesimi.forEach((sp, idx) => {
+      if (!S.prepared) S.prepared = {};
+      const isPrep = S.prepared[sp.nome] !== undefined ? S.prepared[sp.nome] : true;
+      const row = document.createElement('div');
+      row.className = 'spell-row';
+      row.innerHTML = `<div class="spell-dot${isPrep?' prep':''}"></div>
+        <div class="spell-name${isPrep?' prep':' unprep'}">${sp.nome}</div>
+        <div class="spell-lv">${sp.livello === 0 ? 'Cantrip' : 'Lv ' + sp.livello}</div>`;
+      row.onclick = () => {
+        S.prepared[sp.nome] = !isPrep;
+        saveState(); renderMagia();
+      };
+      spellCard.appendChild(row);
+    });
+    mc.appendChild(spellCard);
+  }
 }
-track.addEventListener('pointerup', endSwipe);
-track.addEventListener('pointerleave', endSwipe);
-track.addEventListener('pointercancel', endSwipe);
 
-// ══════════════════════════════════════════════
-//  BOTTONI STATICI
-// ══════════════════════════════════════════════
-document.getElementById('dec-pf').addEventListener('click', () => {
-  state.pf = clamp(state.pf - 1, 0, state.pfMax); render();
-});
-document.getElementById('inc-pf').addEventListener('click', () => {
-  state.pf = clamp(state.pf + 1, 0, state.pfMax); render();
-});
-document.getElementById('dec-temp').addEventListener('click', () => {
-  state.pfTemp = Math.max(0, state.pfTemp - 1); render();
-});
-document.getElementById('inc-temp').addEventListener('click', () => {
-  state.pfTemp++; render();
-});
-document.getElementById('use-hd').addEventListener('click', () => {
-  state.hdAvail = Math.max(0, state.hdAvail - 1); render();
-});
-document.getElementById('rec-hd').addEventListener('click', () => {
-  state.hdAvail = Math.min(CHAR.level, state.hdAvail + 1); render();
-});
-document.getElementById('insp-row').addEventListener('click', () => {
-  state.inspiration = !state.inspiration; render();
-});
-document.getElementById('cond-header').addEventListener('click', () => {
-  state.condOpen = !state.condOpen; render();
-});
-document.getElementById('notes-area').addEventListener('input', e => {
-  state.note = e.target.value;
-});
-
-// ── Tieni premuto su PF per valore esatto ──
-let longPressTimer = null;
-const pfDisplay = document.getElementById('pf-display');
-
-function openModal(title, value, onConfirm) {
-  document.getElementById('modal-title').textContent = title;
-  const inp = document.getElementById('modal-input');
-  inp.value = value;
-  document.getElementById('modal-overlay').classList.add('open');
-  setTimeout(() => { inp.focus(); inp.select(); }, 100);
-  document.getElementById('modal-confirm').onclick = () => {
-    const v = parseInt(inp.value);
-    if (!isNaN(v)) onConfirm(v);
-    document.getElementById('modal-overlay').classList.remove('open');
-  };
+function toggleSlot(lv, idx, tot) {
+  if (!S.slots) S.slots = {};
+  const cur = S.slots[lv] !== undefined ? S.slots[lv] : tot;
+  // clicking avail pip = use it; clicking used pip = restore it
+  if (idx < cur) {
+    S.slots[lv] = idx; // use all from idx to cur
+  } else {
+    S.slots[lv] = idx + 1; // restore
+  }
+  saveState(); renderMagia();
 }
-document.getElementById('modal-cancel').addEventListener('click', () => {
-  document.getElementById('modal-overlay').classList.remove('open');
-});
-document.getElementById('modal-overlay').addEventListener('click', e => {
-  if (e.target === document.getElementById('modal-overlay'))
-    document.getElementById('modal-overlay').classList.remove('open');
-});
 
-const pfCard = pfDisplay.closest('.card');
-pfCard.addEventListener('pointerdown', e => {
-  longPressTimer = setTimeout(() => {
-    openModal('Imposta PF', state.pf, v => { state.pf = clamp(v, 0, state.pfMax); render(); });
-  }, 600);
-});
-pfCard.addEventListener('pointerup', () => clearTimeout(longPressTimer));
-pfCard.addEventListener('pointerleave', () => clearTimeout(longPressTimer));
-pfCard.addEventListener('pointercancel', () => clearTimeout(longPressTimer));
+// ── SEZIONE 4: INVENTARIO ──
+function renderInventario() {
+  const il = el('itemList');
+  il.innerHTML = '';
+  if (!C.items || !C.items.length) {
+    il.innerHTML = '<div style="padding:14px 0;text-align:center;font-size:13px;color:var(--text-faint)">Nessun oggetto</div>';
+  } else {
+    C.items.forEach((item, idx) => {
+      if (!S.qty) S.qty = {};
+      if (S.qty[item.nome] === undefined) S.qty[item.nome] = 1;
+      const row = document.createElement('div');
+      row.className = 'item-row';
+      row.innerHTML = `<div class="item-name">${item.nome}</div>
+        <button class="btn-sq sm" onclick="adjQty('${item.nome}',-1)">&#8722;</button>
+        <div class="item-val" id="qty_${idx}">${S.qty[item.nome]}</div>
+        <button class="btn-sq sm" onclick="adjQty('${item.nome}',1)">+</button>`;
+      il.appendChild(row);
+    });
+  }
+  const gl = el('goldList');
+  gl.innerHTML = '';
+  GOLDDEFS.forEach(g => {
+    const v = S.gold[g.k] || 0;
+    const row = document.createElement('div');
+    row.className = 'gold-row';
+    row.innerHTML = `<div class="gold-lbl">${g.label}</div>
+      <div class="gold-name">${g.name}</div>
+      <button class="btn-sq sm" onclick="adjGold('${g.k}',-1)">&#8722;</button>
+      <div class="gold-val" id="gold_${g.k}">${v}</div>
+      <button class="btn-sq sm" onclick="adjGold('${g.k}',1)">+</button>`;
+    gl.appendChild(row);
+  });
+}
 
-// ══════════════════════════════════════════════
-//  TOOLBAR: SALVA / CARICA / RIPOSO
-// ══════════════════════════════════════════════
-document.getElementById('btn-save').addEventListener('click', () => {
-  const data = { char: CHAR.name, date: new Date().toISOString(), state };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `${CHAR.name.replace(/\s+/g,'_')}_scheda.json`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-});
+// ── SEZIONE 5: PERSONAGGIO ──
+function renderPersonaggio() {
+  el('charBg').textContent = C.background || '—';
+  el('charTratti').textContent = C.tratti || '—';
+  el('charIdeale').textContent = C.ideale || '—';
+  el('charLegame').textContent = C.legame || '—';
+  el('charDifetto').textContent = C.difetto || '—';
+  noteArea = el('noteArea');
+  noteArea.value = S.note || '';
+  noteArea.oninput = () => { S.note = noteArea.value; saveState(); };
+}
 
-document.getElementById('btn-load').addEventListener('click', () => {
-  document.getElementById('file-input').click();
-});
+// ── RENDER TUTTO ──
+function renderAll() {
+  renderHeader();
+  renderNav();
+  renderStato();
+  renderCombattimento();
+  renderAbilita();
+  renderMagia();
+  renderInventario();
+  renderPersonaggio();
+  updateCarousel(false);
+}
 
-document.getElementById('file-input').addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    try {
-      const data = JSON.parse(ev.target.result);
-      if (data.state) { state = data.state; render(); }
-      else alert('File JSON non valido.');
-    } catch { alert('Errore nel leggere il file.'); }
+// ── CAROSELLO ──
+let curSection = 0;
+let dragStart = null, dragDelta = 0, dragging = false;
+const NSECTIONS = 6;
+
+function gotoSection(i, animate = true) {
+  curSection = Math.max(0, Math.min(NSECTIONS - 1, i));
+  S.section = curSection;
+  renderNav();
+  updateCarousel(animate);
+  saveState();
+}
+
+function updateCarousel(animate) {
+  const track = el('carouselTrack');
+  if (!animate) track.style.transition = 'none';
+  track.style.transform = `translateX(-${curSection * 100}%)`;
+  if (!animate) {
+    requestAnimationFrame(() => { track.style.transition = ''; });
+  }
+}
+
+function initCarousel() {
+  const outer = el('carouselOuter');
+  let startX = 0, startY = 0, lastDelta = 0, active = false, lockedAxis = null;
+
+  outer.addEventListener('pointerdown', e => {
+    startX = e.clientX;
+    startY = e.clientY;
+    lastDelta = 0;
+    active = true;
+    lockedAxis = null;
+    dragDelta = 0;
+    outer.setPointerCapture(e.pointerId);
+  });
+
+  outer.addEventListener('pointermove', e => {
+    if (!active) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    // Lock axis on first significant movement
+    if (!lockedAxis) {
+      if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
+        lockedAxis = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y';
+      }
+    }
+    if (lockedAxis !== 'x') return;
+    e.preventDefault();
+    lastDelta = dx;
+    dragDelta = dx;
+    el('carouselTrack').style.transition = 'none';
+    el('carouselTrack').style.transform = `translateX(calc(-${curSection * 100}% + ${dx}px))`;
+  }, { passive: false });
+
+  const endDrag = e => {
+    if (!active) return;
+    active = false;
+    lockedAxis = null;
+    const thresh = 50;
+    el('carouselTrack').style.transition = '';
+    dragDelta = 0;
+    if (lastDelta < -thresh) gotoSection(curSection + 1);
+    else if (lastDelta > thresh) gotoSection(curSection - 1);
+    else {
+      el('carouselTrack').style.transform = `translateX(-${curSection * 100}%)`;
+    }
+    lastDelta = 0;
   };
-  reader.readAsText(file);
-  e.target.value = '';
-});
 
-document.getElementById('btn-rest').addEventListener('click', () => {
-  if (!confirm('Riposo lungo: recuperi tutti i PF, tutti i dadi vita e tutti gli slot incantesimi?')) return;
-  state.pf = state.pfMax;
-  state.hdAvail = CHAR.level;
-  CHAR.spellSlots.forEach(sl => { state.slots[sl.level] = Array(sl.total).fill(false); });
-  render();
-});
+  outer.addEventListener('pointerup', endDrag);
+  outer.addEventListener('pointercancel', () => {
+    // On cancel, just snap back without changing section
+    active = false; lockedAxis = null; lastDelta = 0; dragDelta = 0;
+    el('carouselTrack').style.transition = '';
+    el('carouselTrack').style.transform = `translateX(-${curSection * 100}%)`;
+  });
+}
 
-// ══════════════════════════════════════════════
-//  INIT
-// ══════════════════════════════════════════════
-// Ripristina transizione track dopo il primo frame
-track.style.transition = 'transform .32s cubic-bezier(.4,0,.2,1)';
-render();
+// ── AZIONI ──
+function adj(key, delta) {
+  if (key === 'pf') {
+    S.pf = Math.max(0, Math.min((C.pfMax || 10) + (S.pfTemp || 0), S.pf + delta));
+  } else if (key === 'pfTemp') {
+    S.pfTemp = Math.max(0, S.pfTemp + delta);
+  } else if (key === 'hdAvail') {
+    S.hdAvail = Math.max(0, Math.min(hdMax(), (S.hdAvail || 0) + delta));
+  }
+  saveState(); renderAll();
+}
+function adjQty(name, d) {
+  if (!S.qty) S.qty = {};
+  S.qty[name] = Math.max(0, (S.qty[name] || 0) + d);
+  saveState(); renderInventario();
+}
+function adjGold(k, d) {
+  S.gold[k] = Math.max(0, (S.gold[k] || 0) + d);
+  saveState(); renderInventario();
+}
+function toggleInsp() {
+  S.inspiration = !S.inspiration;
+  saveState(); renderStato(); renderHeader();
+}
+function toggleCondOpen() {
+  S.condOpen = !S.condOpen;
+  saveState(); renderStato();
+}
+
+// ── SETUP ──
+let setupStep = 0;
+let SD = {}; // setup draft
+
+function openSetup() {
+  SD = JSON.parse(JSON.stringify(C)); // clone current char
+  setupStep = 0;
+  el('setupOverlay').style.display = 'flex';
+  renderSetup();
+}
+function closeSetup() {
+  el('setupOverlay').style.display = 'none';
+  if (!C.nome) {
+    // Mostra empty state con invito a riaprire
+    el('frame').classList.add('no-char');
+  } else {
+    el('frame').classList.remove('no-char');
+  }
+}
+
+function renderSetup() {
+  el('setupTitle').textContent = SETUP_STEPS[setupStep];
+  // progress dots
+  const prog = el('setupProgress');
+  prog.innerHTML = '';
+  SETUP_STEPS.forEach((_,i) => {
+    const d = document.createElement('div');
+    d.className = 'setup-dot ' + (i < setupStep ? 'done' : i === setupStep ? 'current' : 'todo');
+    prog.appendChild(d);
+  });
+  renderSetupStep();
+  renderSetupFooter();
+}
+
+function renderSetupFooter() {
+  const footer = el('setupFooter');
+  footer.innerHTML = '';
+  const isEdit = !!C.nome; // personaggio già esistente
+  const isLast = setupStep === SETUP_STEPS.length - 1;
+
+  if (setupStep > 0) {
+    const back = document.createElement('button');
+    back.className = 'btn-back';
+    back.textContent = '← Indietro';
+    back.onclick = () => { setupStep--; renderSetup(); };
+    footer.appendChild(back);
+  }
+
+  // In edit mode: bottone Salva sempre visibile (non solo all'ultimo step)
+  if (isEdit && !isLast) {
+    const save = document.createElement('button');
+    save.className = 'btn-back';
+    save.style.cssText = 'flex:1;color:var(--green);border-color:var(--green-border)';
+    save.textContent = '✓ Salva';
+    save.onclick = () => { collectSetupStep(); saveSetup(); };
+    footer.appendChild(save);
+  }
+
+  const next = document.createElement('button');
+  next.className = 'btn-next';
+  next.textContent = isLast ? '✓ Salva Personaggio' : 'Avanti →';
+  next.onclick = () => {
+    collectSetupStep();
+    if (!isLast) {
+      setupStep++;
+      renderSetup();
+    } else {
+      saveSetup();
+    }
+  };
+  footer.appendChild(next);
+}
+
+function collectSetupStep() {
+  // collect values from current step inputs
+  switch(setupStep) {
+    case 0: // anagrafica
+      SD.nome = (el('si_nome')||{}).value || SD.nome;
+      SD.razza = (el('si_razza')||{}).value || SD.razza;
+      SD.livello = parseInt((el('si_lv')||{}).textContent || '1') || 1;
+      // classe collected via button clicks
+      break;
+    case 1: // stats — collected live
+      break;
+    case 2: // proficienze — collected via toggle clicks
+      break;
+    case 3: // combattimento
+      SD.ca = parseInt((el('si_ca')||{}).value) || SD.ca || 10;
+      SD.velocita = parseInt((el('si_vel')||{}).value) || SD.velocita || 9;
+      SD.pfMax = parseInt((el('si_pfmax')||{}).value) || SD.pfMax || 10;
+      break;
+    case 4: // attacchi — collected live
+      break;
+    case 5: // magia — collected live
+      SD.spellAbil = window._sdSpellAbil || SD.spellAbil || 'int';
+      break;
+    case 6: // inventario & personaggio
+      SD.tratti = (el('si_tratti')||{}).value || '';
+      SD.ideale = (el('si_ideale')||{}).value || '';
+      SD.legame = (el('si_legame')||{}).value || '';
+      SD.difetto = (el('si_difetto')||{}).value || '';
+      SD.background = (el('si_bg')||{}).value || '';
+      break;
+  }
+}
+
+function saveSetup() {
+  collectSetupStep();
+  // deep copy SD into C
+  Object.assign(C, SD);
+  C.profBonus = pb();
+  // init slots from spellSlots
+  const newSlots = {};
+  Object.entries(C.spellSlots || {}).forEach(([lv, tot]) => {
+    newSlots[lv] = parseInt(tot) || 0;
+  });
+  S.slots = newSlots;
+  // init prepared
+  const newPrep = {};
+  (C.incantesimi || []).forEach(sp => { newPrep[sp.nome] = true; });
+  S.prepared = newPrep;
+  // init qty
+  const newQty = {};
+  (C.items || []).forEach(item => { newQty[item.nome] = S.qty[item.nome] || 1; });
+  S.qty = newQty;
+  // reset pf if pfMax changed
+  if (S.pf > C.pfMax) S.pf = C.pfMax;
+  if (S.pf === 0 && C.pfMax > 0) S.pf = C.pfMax;
+  if (S.hdAvail > hdMax()) S.hdAvail = hdMax();
+  saveState();
+  closeSetup();
+  renderAll();
+}
+
+function renderSetupStep() {
+  const body = el('setupBody');
+  body.innerHTML = '';
+  const step = document.createElement('div');
+  step.className = 'setup-step';
+  body.appendChild(step);
+
+  switch(setupStep) {
+    case 0: renderStep0(step); break;
+    case 1: renderStep1(step); break;
+    case 2: renderStep2(step); break;
+    case 3: renderStep3(step); break;
+    case 4: renderStep4(step); break;
+    case 5: renderStep5(step); break;
+    case 6: renderStep6(step); break;
+  }
+}
+
+function renderStep0(step) {
+  // nome
+  step.innerHTML += `<div class="setup-field"><label>Nome Personaggio</label><input id="si_nome" value="${SD.nome||''}" placeholder="Es. Theron Aldebrand"></div>`;
+  // razza
+  step.innerHTML += `<div class="setup-field"><label>Razza</label><input id="si_razza" value="${SD.razza||''}" placeholder="Es. Umano, Elfo, Nano..."></div>`;
+  // classe
+  const clDiv = document.createElement('div');
+  clDiv.className = 'setup-field';
+  clDiv.innerHTML = '<label>Classe</label>';
+  const grid = document.createElement('div');
+  grid.className = 'classe-grid';
+  CLASSI.forEach(cl => {
+    const btn = document.createElement('button');
+    btn.className = 'classe-btn' + (SD.classe === cl.name ? ' sel' : '');
+    btn.textContent = cl.name + ' (' + cl.hd + ')';
+    btn.onclick = () => {
+      SD.classe = cl.name;
+      step.querySelectorAll('.classe-btn').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+    };
+    grid.appendChild(btn);
+  });
+  clDiv.appendChild(grid);
+  step.appendChild(clDiv);
+  // livello
+  const lvDiv = document.createElement('div');
+  lvDiv.className = 'setup-field';
+  lvDiv.innerHTML = '<label>Livello</label>';
+  const lvRow = document.createElement('div');
+  lvRow.className = 'lv-row';
+  const btnMinus = document.createElement('button');
+  btnMinus.className = 'btn-setup-step';
+  btnMinus.innerHTML = '&#8722;';
+  const lvNum = document.createElement('div');
+  lvNum.id = 'si_lv';
+  lvNum.className = 'lv-num';
+  lvNum.textContent = SD.livello || 1;
+  const btnPlus = document.createElement('button');
+  btnPlus.className = 'btn-setup-step';
+  btnPlus.innerHTML = '+';
+  const hint = document.createElement('span');
+  hint.className = 'prof-hint';
+  hint.id = 'si_pb_hint';
+  hint.textContent = 'PB: +' + (PROF_TABLE[SD.livello||1]||2);
+  btnMinus.onclick = () => {
+    let v = parseInt(lvNum.textContent);
+    v = Math.max(1, v-1);
+    lvNum.textContent = v; SD.livello = v;
+    hint.textContent = 'PB: +' + (PROF_TABLE[v]||2);
+  };
+  btnPlus.onclick = () => {
+    let v = parseInt(lvNum.textContent);
+    v = Math.min(20, v+1);
+    lvNum.textContent = v; SD.livello = v;
+    hint.textContent = 'PB: +' + (PROF_TABLE[v]||2);
+  };
+  lvRow.appendChild(btnMinus);
+  lvRow.appendChild(lvNum);
+  lvRow.appendChild(btnPlus);
+  lvRow.appendChild(hint);
+  lvDiv.appendChild(lvRow);
+  step.appendChild(lvDiv);
+}
+
+function renderStep1(step) {
+  const statsDiv = document.createElement('div');
+  statsDiv.className = 'setup-field';
+  statsDiv.innerHTML = '<label>Caratteristiche (3–20)</label>';
+  if (!SD.stats) SD.stats = {for:10,des:10,cos:10,int:10,sag:10,car:10};
+  const SLBLS = ['FOR','DES','COS','INT','SAG','CAR'];
+  SAV_KEYS.forEach((k, i) => {
+    const row = document.createElement('div');
+    row.className = 'stat-setup-row';
+    const v = SD.stats[k] || 10;
+    const m = mod(v);
+    row.innerHTML = `<span class="stat-setup-lbl">${SLBLS[i]}</span>`;
+    const minus = document.createElement('button');
+    minus.className = 'btn-setup-step';
+    minus.innerHTML = '&#8722;';
+    const valEl = document.createElement('div');
+    valEl.className = 'stat-setup-val';
+    valEl.textContent = v;
+    const plus = document.createElement('button');
+    plus.className = 'btn-setup-step';
+    plus.innerHTML = '+';
+    const modEl = document.createElement('div');
+    modEl.className = 'stat-setup-mod ' + (m >= 0 ? 'pos' : 'neg');
+    modEl.textContent = fmtMod(m);
+    minus.onclick = () => {
+      SD.stats[k] = Math.max(3, (SD.stats[k]||10)-1);
+      const nv = SD.stats[k]; const nm = mod(nv);
+      valEl.textContent = nv;
+      modEl.textContent = fmtMod(nm);
+      modEl.className = 'stat-setup-mod ' + (nm >= 0 ? 'pos' : 'neg');
+    };
+    plus.onclick = () => {
+      SD.stats[k] = Math.min(20, (SD.stats[k]||10)+1);
+      const nv = SD.stats[k]; const nm = mod(nv);
+      valEl.textContent = nv;
+      modEl.textContent = fmtMod(nm);
+      modEl.className = 'stat-setup-mod ' + (nm >= 0 ? 'pos' : 'neg');
+    };
+    row.appendChild(minus);
+    row.appendChild(valEl);
+    row.appendChild(plus);
+    row.appendChild(modEl);
+    statsDiv.appendChild(row);
+  });
+  step.appendChild(statsDiv);
+}
+
+function renderStep2(step) {
+  if (!SD.savProf) SD.savProf = [];
+  if (!SD.abilProf) SD.abilProf = [];
+  // saves
+  const savDiv = document.createElement('div');
+  savDiv.className = 'setup-field';
+  savDiv.innerHTML = '<label>Tiri Salvezza — Competenza</label>';
+  const savGrid = document.createElement('div');
+  savGrid.className = 'toggle-grid-3';
+  SAV_KEYS.forEach(k => {
+    const chip = document.createElement('div');
+    chip.className = 'toggle-chip' + (SD.savProf.includes(k) ? ' on' : '');
+    chip.textContent = SAV_LABELS[k];
+    chip.onclick = () => {
+      const idx = SD.savProf.indexOf(k);
+      if (idx >= 0) SD.savProf.splice(idx,1); else SD.savProf.push(k);
+      chip.className = 'toggle-chip' + (SD.savProf.includes(k) ? ' on' : '');
+    };
+    savGrid.appendChild(chip);
+  });
+  savDiv.appendChild(savGrid);
+  step.appendChild(savDiv);
+  // abilita
+  const abilDiv = document.createElement('div');
+  abilDiv.className = 'setup-field';
+  abilDiv.innerHTML = '<label>Abilità — Competenza</label>';
+  const abilGrid = document.createElement('div');
+  abilGrid.className = 'toggle-grid-2';
+  SKILLS.forEach(s => {
+    const chip = document.createElement('div');
+    chip.className = 'toggle-chip sm' + (SD.abilProf.includes(s.name) ? ' on' : '');
+    chip.textContent = s.name;
+    chip.onclick = () => {
+      const idx = SD.abilProf.indexOf(s.name);
+      if (idx >= 0) SD.abilProf.splice(idx,1); else SD.abilProf.push(s.name);
+      chip.className = 'toggle-chip sm' + (SD.abilProf.includes(s.name) ? ' on' : '');
+    };
+    abilGrid.appendChild(chip);
+  });
+  abilDiv.appendChild(abilGrid);
+  step.appendChild(abilDiv);
+}
+
+function renderStep3(step) {
+  step.innerHTML = `
+    <div class="setup-field"><label>CA (Classe Armatura)</label><input id="si_ca" type="number" value="${SD.ca||10}" min="1" max="30"></div>
+    <div class="setup-field"><label>PF Massimi</label><input id="si_pfmax" type="number" value="${SD.pfMax||10}" min="1"></div>
+    <div class="setup-field"><label>Velocità (metri)</label><input id="si_vel" type="number" value="${SD.velocita||9}" min="0"></div>`;
+}
+
+function renderStep4(step) {
+  if (!SD.attacchi) SD.attacchi = [];
+  const atkDiv = document.createElement('div');
+  atkDiv.className = 'setup-field';
+  atkDiv.innerHTML = '<label>Attacchi</label>';
+  const renderAtks = () => {
+    atkDiv.innerHTML = '<label>Attacchi</label>';
+    SD.attacchi.forEach((a, idx) => {
+      const card = document.createElement('div');
+      card.className = 'atk-setup-card';
+      card.style.marginBottom = '8px';
+      card.innerHTML = `<div class="atk-setup-top">
+        <span class="atk-setup-lbl">ATTACCO ${idx+1}</span>
+        <button class="btn-remove" onclick="removeAtk(${idx})">✕ Rimuovi</button>
+      </div>
+      <input class="input-sm" placeholder="Nome arma" value="${a.nome||''}" oninput="SD.attacchi[${idx}].nome=this.value" style="width:100%">
+      <div class="input-row">
+        <input placeholder="Bonus (es. +5)" value="${a.bonus||''}" oninput="SD.attacchi[${idx}].bonus=this.value">
+        <input placeholder="Danno (es. 1d8+3)" value="${a.danno||''}" oninput="SD.attacchi[${idx}].danno=this.value">
+      </div>
+      <input class="input-sm" placeholder="Tipo (es. Perforante, Fuoco)" value="${a.tipo||''}" oninput="SD.attacchi[${idx}].tipo=this.value" style="width:100%;margin-top:8px">`;
+      atkDiv.appendChild(card);
+    });
+    const addBtn = document.createElement('button');
+    addBtn.className = 'btn-add-atk';
+    addBtn.textContent = '+ Aggiungi Attacco';
+    addBtn.onclick = () => { SD.attacchi.push({nome:'',bonus:'+0',danno:'1d6',tipo:''}); renderAtks(); };
+    atkDiv.appendChild(addBtn);
+  };
+  window.removeAtk = (idx) => { SD.attacchi.splice(idx,1); renderAtks(); };
+  renderAtks();
+  step.appendChild(atkDiv);
+}
+
+function renderStep5(step) {
+  if (!SD.spellSlots) SD.spellSlots = {};
+  if (!SD.incantesimi) SD.incantesimi = [];
+  window._sdSpellAbil = SD.spellAbil || 'int';
+  // casting ability
+  const abilDiv = document.createElement('div');
+  abilDiv.className = 'setup-field';
+  abilDiv.innerHTML = '<label>Caratteristica di Lancio</label>';
+  const abilGrid = document.createElement('div');
+  abilGrid.className = 'toggle-grid-3';
+  ['int','sag','car'].forEach(k => {
+    const chip = document.createElement('div');
+    chip.className = 'toggle-chip' + (window._sdSpellAbil === k ? ' on' : '');
+    chip.textContent = SAV_LABELS[k];
+    chip.onclick = () => {
+      window._sdSpellAbil = k; SD.spellAbil = k;
+      abilGrid.querySelectorAll('.toggle-chip').forEach(c => c.classList.remove('on'));
+      chip.classList.add('on');
+    };
+    abilGrid.appendChild(chip);
+  });
+  abilDiv.appendChild(abilGrid);
+  step.appendChild(abilDiv);
+  // slot per livello
+  const slotDiv = document.createElement('div');
+  slotDiv.className = 'setup-field';
+  slotDiv.innerHTML = '<label>Slot per Livello (0 = nessuno)</label>';
+  for (let lv = 1; lv <= 9; lv++) {
+    const cur = SD.spellSlots[lv] || 0;
+    const row = document.createElement('div');
+    row.className = 'spell-input-row';
+    row.innerHTML = `<span class="spell-lv-num">${lv}</span>`;
+    const minus = document.createElement('button');
+    minus.className = 'btn-setup-step sm';
+    minus.innerHTML = '&#8722;';
+    const valEl = document.createElement('div');
+    valEl.style.cssText = 'min-width:26px;text-align:center;font-size:17px;font-weight:700';
+    valEl.textContent = cur;
+    const plus = document.createElement('button');
+    plus.className = 'btn-setup-step sm';
+    plus.innerHTML = '+';
+    minus.onclick = () => {
+      SD.spellSlots[lv] = Math.max(0, (SD.spellSlots[lv]||0)-1);
+      valEl.textContent = SD.spellSlots[lv];
+    };
+    plus.onclick = () => {
+      SD.spellSlots[lv] = Math.min(9, (SD.spellSlots[lv]||0)+1);
+      valEl.textContent = SD.spellSlots[lv];
+    };
+    row.appendChild(minus);
+    row.appendChild(valEl);
+    row.appendChild(plus);
+    slotDiv.appendChild(row);
+  }
+  step.appendChild(slotDiv);
+  // incantesimi
+  const spDiv = document.createElement('div');
+  spDiv.className = 'setup-field';
+  spDiv.innerHTML = '<label>Incantesimi</label>';
+  const renderSpells = () => {
+    // remove all children except label
+    while (spDiv.children.length > 1) spDiv.removeChild(spDiv.lastChild);
+    SD.incantesimi.forEach((sp, idx) => {
+      const row = document.createElement('div');
+      row.className = 'input-row';
+      row.style.alignItems = 'center';
+      row.innerHTML = `<input placeholder="Nome incantesimo" value="${sp.nome||''}" oninput="SD.incantesimi[${idx}].nome=this.value" style="flex:2">
+        <input type="number" placeholder="Lv" min="0" max="9" value="${sp.livello||0}" oninput="SD.incantesimi[${idx}].livello=parseInt(this.value)||0" style="flex:0.5;min-width:52px">
+        <button class="btn-remove" onclick="removeSpell(${idx});renderSpellsInStep()">✕</button>`;
+      spDiv.appendChild(row);
+    });
+    const addBtn = document.createElement('button');
+    addBtn.className = 'btn-add-dashed';
+    addBtn.textContent = '+ Incantesimo';
+    addBtn.onclick = () => { SD.incantesimi.push({nome:'',livello:0}); renderSpells(); };
+    spDiv.appendChild(addBtn);
+  };
+  window.removeSpell = (idx) => { SD.incantesimi.splice(idx,1); };
+  window.renderSpellsInStep = renderSpells;
+  renderSpells();
+  step.appendChild(spDiv);
+}
+
+function renderStep6(step) {
+  if (!SD.items) SD.items = [];
+  // items
+  const itemDiv = document.createElement('div');
+  itemDiv.className = 'setup-field';
+  itemDiv.innerHTML = '<label>Oggetti nell\'Inventario</label>';
+  const renderItems = () => {
+    while (itemDiv.children.length > 1) itemDiv.removeChild(itemDiv.lastChild);
+    SD.items.forEach((it, idx) => {
+      const row = document.createElement('div');
+      row.className = 'input-row';
+      row.innerHTML = `<input placeholder="Nome oggetto" value="${it.nome||''}" oninput="SD.items[${idx}].nome=this.value">
+        <button class="btn-remove" onclick="removeItem(${idx});renderItemsInStep()">✕</button>`;
+      itemDiv.appendChild(row);
+    });
+    const addBtn = document.createElement('button');
+    addBtn.className = 'btn-add-dashed grey';
+    addBtn.textContent = '+ Oggetto';
+    addBtn.onclick = () => { SD.items.push({nome:''}); renderItems(); };
+    itemDiv.appendChild(addBtn);
+  };
+  window.removeItem = (idx) => { SD.items.splice(idx,1); };
+  window.renderItemsInStep = renderItems;
+  renderItems();
+  step.appendChild(itemDiv);
+  // background
+  step.innerHTML += `<div class="setup-field"><label>Background</label><input id="si_bg" value="${SD.background||''}" placeholder="Es. Soldato, Eremita..."></div>`;
+  // tratti etc
+  const fields = [
+    {id:'si_tratti',lbl:'Tratti della Personalità',val:SD.tratti||'',ph:'Come ti comporti?'},
+    {id:'si_ideale',lbl:'Ideale',val:SD.ideale||'',ph:'Cosa ti guida?'},
+    {id:'si_legame',lbl:'Legame',val:SD.legame||'',ph:'Chi o cosa ti lega al mondo?'},
+    {id:'si_difetto',lbl:'Difetto',val:SD.difetto||'',ph:'Qual è la tua debolezza?'},
+  ];
+  fields.forEach(f => {
+    const div = document.createElement('div');
+    div.className = 'setup-field';
+    div.innerHTML = `<label>${f.lbl}</label><textarea id="${f.id}" placeholder="${f.ph}" rows="2">${f.val}</textarea>`;
+    step.appendChild(div);
+  });
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', () => {
+  const hasData = loadState();
+  curSection = S.section || 0;
+  initCarousel();
+  if (!hasData || !C.nome) {
+    openSetup();
+  } else {
+    renderAll();
+  }
+});
 </script>
 </body>
 </html>
