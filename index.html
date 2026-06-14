@@ -312,6 +312,46 @@ label { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; color:
 .no-char-screen .title { font-size: 20px; font-weight: 700; }
 .no-char-screen .sub { font-size: 14px; color: var(--text-dim); line-height: 1.55; }
 .no-char-screen .btn-start { padding: 14px 32px; border-radius: 14px; border: none; background: var(--green); color: #1d1f24; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+/* ── ROSTER SCREEN ── */
+.roster-screen {
+  position: fixed; inset: 0; z-index: 200;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  align-items: center;
+  padding: 60px 24px 40px;
+  overflow-y: auto;
+}
+.roster-screen.hidden { display: none; }
+.roster-title { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+.roster-sub { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; color: var(--green); text-transform: uppercase; margin-bottom: 32px; }
+.roster-list { width: 100%; max-width: 390px; display: flex; flex-direction: column; gap: 10px; }
+.roster-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+  padding: 18px 20px; cursor: pointer; display: flex; align-items: center; gap: 16px;
+  transition: border-color .15s ease, background .15s ease;
+}
+.roster-card:hover { border-color: var(--green-border); background: rgba(78,203,141,0.06); }
+.roster-card-avatar {
+  width: 46px; height: 46px; border-radius: 14px;
+  background: var(--green-bg); border: 1px solid var(--green-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0;
+}
+.roster-card-info { flex: 1; min-width: 0; }
+.roster-card-name { font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.roster-card-sub { font-family: var(--mono); font-size: 10px; color: var(--text-dim); margin-top: 3px; letter-spacing: 0.5px; }
+.roster-card-pf { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--green); margin-top: 5px; }
+.roster-card-del { padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(242,139,125,0.3); background: rgba(242,139,125,0.08); color: var(--red); font-size: 13px; cursor: pointer; flex-shrink: 0; }
+.roster-card-del:hover { background: rgba(242,139,125,0.18); }
+.btn-new-char {
+  width: 100%; max-width: 390px; margin-top: 14px;
+  padding: 16px; border-radius: 18px;
+  border: 2px dashed rgba(78,203,141,0.4); background: rgba(78,203,141,0.07);
+  color: var(--green); font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: all .15s ease;
+}
+.btn-new-char:hover { background: rgba(78,203,141,0.14); border-color: var(--green); }
+
 @media (max-width: 440px) {
   .phone-frame { border-radius: 0; box-shadow: none; height: 100vh; width: 100vw; }
   .phone-wrap { width: 100%; }
@@ -321,6 +361,13 @@ label { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; color:
 </style>
 </head>
 <body>
+<div id="rosterScreen" class="roster-screen hidden">
+  <div class="roster-title">I tuoi Eroi</div>
+  <div class="roster-sub">Scheda D&amp;D 5e</div>
+  <div class="roster-list" id="rosterList"></div>
+  <button class="btn-new-char" onclick="rosterNew()">+ Nuovo Personaggio</button>
+</div>
+
 <div id="app">
   <div class="page-header">
     <div class="tag">Scheda D&amp;D 5e · Essenziale</div>
@@ -340,6 +387,7 @@ label { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; color:
           <div class="char-header-right">
             <div class="lv-badge">LIV <span id="hdrLv">1</span></div>
             <span style="font-family:var(--mono);font-size:9px;color:var(--text-faint);letter-spacing:0.5px" id="versionBadge"></span>
+            <button class="btn-gear" onclick="goToRoster()" title="Personaggi">&#8592;</button>
             <button class="btn-gear" onclick="openSetup()">&#9881;</button>
           </div>
         </div>
@@ -591,9 +639,37 @@ const SETUP_STEPS = ['Anagrafica','Caratteristiche','Proficienze','Combattimento
 const PROF_TABLE = {1:2,2:2,3:2,4:2,5:3,6:3,7:3,8:3,9:4,10:4,11:4,12:4,13:5,14:5,15:5,16:5,17:6,18:6,19:6,20:6};
 
 // ── STATO ──
-const SKEY = 'dnd5e_scheda';
+const SKEY_ROSTER = 'dnd5e_roster';   // array di {id, nome, classe, livello}
+const SKEY_CHAR   = 'dnd5e_char_';    // + id = stato completo
+const SKEY_OLD    = 'dnd5e_scheda';   // legacy (migrazione)
+let currentCharId = null;
 let S = null;  // stato live
 let C = null;  // dati personaggio
+
+// ── ROSTER ──
+function getRoster() {
+  try { return JSON.parse(localStorage.getItem(SKEY_ROSTER) || '[]'); } catch(e) { return []; }
+}
+function saveRoster(roster) {
+  localStorage.setItem(SKEY_ROSTER, JSON.stringify(roster));
+}
+function genId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+}
+function migrateOldChar() {
+  // Migra il vecchio personaggio singolo al nuovo sistema
+  const raw = localStorage.getItem(SKEY_OLD);
+  if (!raw) return;
+  try {
+    const saved = JSON.parse(raw);
+    if (!saved.char || !saved.char.nome) return;
+    const id = genId();
+    localStorage.setItem(SKEY_CHAR + id, raw);
+    saveRoster([{id, nome: saved.char.nome, classe: saved.char.classe, livello: saved.char.livello}]);
+    localStorage.removeItem(SKEY_OLD);
+    console.log('Migrato vecchio personaggio:', saved.char.nome);
+  } catch(e) {}
+}
 
 const DEF_STATE = () => ({
   section: 0,
@@ -619,25 +695,36 @@ const DEF_STATE = () => ({
   }
 });
 
-function loadState() {
+function loadState(id) {
   try {
-    const raw = localStorage.getItem(SKEY);
+    const raw = localStorage.getItem(SKEY_CHAR + id);
     if (raw) {
       const saved = JSON.parse(raw);
       S = Object.assign(DEF_STATE(), saved);
       S.char = Object.assign(DEF_STATE().char, saved.char || {});
       C = S.char;
+      currentCharId = id;
       return true;
     }
   } catch(e) {}
   S = DEF_STATE();
   C = S.char;
+  currentCharId = id;
   return false;
 }
 
 function saveState() {
   if (noteArea) S.note = noteArea.value;
-  localStorage.setItem(SKEY, JSON.stringify(S));
+  if (!currentCharId) return;
+  localStorage.setItem(SKEY_CHAR + currentCharId, JSON.stringify(S));
+  // aggiorna il roster con nome/classe/livello correnti
+  const roster = getRoster();
+  const entry = roster.find(r => r.id === currentCharId);
+  if (entry) {
+    entry.nome = C.nome; entry.classe = C.classe; entry.livello = C.livello;
+    entry.razza = C.razza; entry.pf = S.pf; entry.pfMax = C.pfMax;
+    saveRoster(roster);
+  }
 }
 
 // ── CALCOLI ──
@@ -1011,65 +1098,7 @@ function updateCarousel(animate) {
   }
 }
 
-function initCarousel() {
-  const outer = el('carouselOuter');
-  let startX = 0, startY = 0, lastDelta = 0, active = false, lockedAxis = null;
 
-  // Carosello: swipe orizzontale. Non usiamo setPointerCapture per non bloccare i click.
-  // Il drag si attiva solo dopo uno spostamento orizzontale minimo.
-  let isDragging = false; // true solo dopo che abbiamo confermato asse X
-
-  outer.addEventListener('pointerdown', e => {
-    if (e.target.closest('button, input, textarea, select, a, [onclick]')) return;
-    startX = e.clientX;
-    startY = e.clientY;
-    lastDelta = 0;
-    active = true;
-    lockedAxis = null;
-    isDragging = false;
-    dragDelta = 0;
-  });
-
-  outer.addEventListener('pointermove', e => {
-    if (!active) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    if (!lockedAxis) {
-      if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
-        lockedAxis = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y';
-      }
-    }
-    if (lockedAxis !== 'x') return;
-    e.preventDefault();
-    isDragging = true;
-    lastDelta = dx;
-    dragDelta = dx;
-    el('carouselTrack').style.transition = 'none';
-    el('carouselTrack').style.transform = `translateX(calc(-${curSection * 100}% + ${dx}px))`;
-  }, { passive: false });
-
-  const endDrag = e => {
-    if (!active) return;
-    active = false;
-    lockedAxis = null;
-    el('carouselTrack').style.transition = '';
-    dragDelta = 0;
-    if (!isDragging) { lastDelta = 0; return; } // era un tap, non uno swipe
-    const thresh = 50;
-    if (lastDelta < -thresh) gotoSection(curSection + 1);
-    else if (lastDelta > thresh) gotoSection(curSection - 1);
-    else el('carouselTrack').style.transform = `translateX(-${curSection * 100}%)`;
-    lastDelta = 0;
-    isDragging = false;
-  };
-
-  outer.addEventListener('pointerup', endDrag);
-  outer.addEventListener('pointercancel', () => {
-    active = false; lockedAxis = null; lastDelta = 0; dragDelta = 0; isDragging = false;
-    el('carouselTrack').style.transition = '';
-    el('carouselTrack').style.transform = `translateX(-${curSection * 100}%)`;
-  });
-}
 
 // ── AZIONI ──
 function adj(key, delta) {
@@ -1112,37 +1141,74 @@ function openSetup() {
   initSetupSwipe();
 }
 
+// ── SWIPE ENGINE ──
+// makeSwipe(element, onLeft, onRight) — swipe orizzontale generico
+// Non blocca click/tap: si attiva solo dopo movimento orizzontale confermato
+function makeSwipe(el_, onLeft, onRight) {
+  let sx = 0, sy = 0, active = false, axis = null, moved = false;
+  el_.addEventListener('pointerdown', e => {
+    // Ignora solo elementi che gestiscono input testo
+    if (e.target.closest('input, textarea, select')) return;
+    sx = e.clientX; sy = e.clientY;
+    active = true; axis = null; moved = false;
+  });
+  el_.addEventListener('pointermove', e => {
+    if (!active) return;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if (!axis && (Math.abs(dx) > 8 || Math.abs(dy) > 8))
+      axis = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y';
+    if (axis !== 'x') return;
+    e.preventDefault();
+    moved = true;
+    if (onMove) onMove(dx);
+  }, { passive: false });
+  let onMove = null; // opzionale, per feedback visivo
+  el_.addEventListener('pointerup', e => {
+    if (!active) return;
+    active = false;
+    if (!moved || axis !== 'x') return;
+    const dx = e.clientX - sx;
+    if (dx < -50) onLeft();
+    else if (dx > 50) onRight();
+  });
+  el_.addEventListener('pointercancel', () => { active = false; });
+  return (fn) => { onMove = fn; }; // ritorna setter per onMove
+}
+
+let _carouselInited = false;
+function initCarousel() {
+  if (_carouselInited) { updateCarousel(false); return; }
+  _carouselInited = true;
+  const outer = el('carouselOuter');
+  const setMove = makeSwipe(
+    outer,
+    () => gotoSection(curSection + 1),
+    () => gotoSection(curSection - 1)
+  );
+  setMove(dx => {
+    el('carouselTrack').style.transition = 'none';
+    el('carouselTrack').style.transform = `translateX(calc(-${curSection * 100}% + ${dx}px))`;
+  });
+  // snap back on cancel
+  outer.addEventListener('pointercancel', () => {
+    el('carouselTrack').style.transition = '';
+    el('carouselTrack').style.transform = `translateX(-${curSection * 100}%)`;
+  });
+}
+
 let _setupSwipeInit = false;
 function initSetupSwipe() {
   if (_setupSwipeInit) return;
   _setupSwipeInit = true;
-  const body = el('setupBody');
-  let sx = 0, sy = 0, swActive = false, swLocked = null, swMoved = false;
-  body.addEventListener('pointerdown', e => {
-    if (e.target.closest('button, input, textarea, select, a, [onclick]')) return;
-    sx = e.clientX; sy = e.clientY;
-    swActive = true; swLocked = null; swMoved = false;
-  });
-  body.addEventListener('pointermove', e => {
-    if (!swActive) return;
-    const dx = e.clientX - sx, dy = e.clientY - sy;
-    if (!swLocked && (Math.abs(dx) > 8 || Math.abs(dy) > 8))
-      swLocked = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y';
-    if (swLocked === 'x') { e.preventDefault(); swMoved = true; }
-  }, { passive: false });
-  const endSwipe = e => {
-    if (!swActive) return;
-    swActive = false;
-    if (!swMoved || swLocked !== 'x') return;
-    const dx = e.clientX - sx;
-    if (dx < -50 && setupStep < SETUP_STEPS.length - 1) {
-      collectSetupStep(); setupStep++; renderSetup();
-    } else if (dx > 50 && setupStep > 0) {
-      setupStep--; renderSetup();
+  makeSwipe(
+    el('setupBody'),
+    () => { // swipe sinistra = avanti
+      if (setupStep < SETUP_STEPS.length - 1) { collectSetupStep(); setupStep++; renderSetup(); }
+    },
+    () => { // swipe destra = indietro
+      if (setupStep > 0) { setupStep--; renderSetup(); }
     }
-  };
-  body.addEventListener('pointerup', endSwipe);
-  body.addEventListener('pointercancel', () => { swActive = false; });
+  );
 }
 function closeSetup() {
   el('setupOverlay').style.display = 'none';
@@ -1263,12 +1329,20 @@ function saveSetup() {
   (C.items || []).forEach(item => { newQty[item.nome] = S.qty[item.nome] || 1; });
   S.qty = newQty;
   // reset pf if pfMax changed
-  const _saved = localStorage.getItem(SKEY) ? JSON.parse(localStorage.getItem(SKEY)) : null;
+  const _saved = currentCharId ? (localStorage.getItem(SKEY_CHAR + currentCharId) ? JSON.parse(localStorage.getItem(SKEY_CHAR + currentCharId)) : null) : null;
   const oldPfMax = _saved ? ((_saved.char||{}).pfMax||0) : 0;
   const oldLivello = _saved ? ((_saved.char||{}).livello||0) : 0;
   if (S.pf > C.pfMax) S.pf = C.pfMax;          // mai sopra il max
   if (S.pf === 0 && C.pfMax > 0) S.pf = C.pfMax; // mai a 0 al primo salvataggio
   if (S.hdAvail > hdMax()) S.hdAvail = hdMax();
+  // Aggiorna il roster
+  const roster = getRoster();
+  const entry = roster.find(r => r.id === currentCharId);
+  if (entry) {
+    entry.nome = C.nome; entry.classe = C.classe; entry.livello = C.livello;
+    entry.pf = S.pf; entry.pfMax = C.pfMax;
+    saveRoster(roster);
+  }
   saveState();
   closeSetup();
   renderAll();
@@ -1667,16 +1741,85 @@ function renderStep6(step) {
   });
 }
 
+// ── ROSTER UI ──
+function showRoster() {
+  migrateOldChar();
+  el('app').style.display = 'none';
+  el('rosterScreen').classList.remove('hidden');
+  renderRoster();
+}
+
+function renderRoster() {
+  const roster = getRoster();
+  const list = el('rosterList');
+  list.innerHTML = '';
+  if (!roster.length) {
+    list.innerHTML = '<div style="text-align:center;padding:40px 0;color:var(--text-faint);font-size:14px">Nessun personaggio.<br>Creane uno nuovo!</div>';
+    return;
+  }
+  roster.forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'roster-card';
+    const hdClass = CLASSI.find(c => c.name === r.classe) || CLASSI[4];
+    const classIcons = {Barbaro:'🪓',Bardo:'🎵',Chierico:'⛪',Druido:'🌿',Guerriero:'⚔️',Ladro:'🗡️',Mago:'🔮',Monaco:'👊',Paladino:'🛡️',Ranger:'🏹',Stregone:'✨',Warlock:'🌑'};
+    const icon = classIcons[r.classe] || '🎲';
+    const pfTxt = (r.pfMax) ? `${r.pf||'?'} / ${r.pfMax} PF` : '';
+    card.innerHTML = `
+      <div class="roster-card-avatar">${icon}</div>
+      <div class="roster-card-info">
+        <div class="roster-card-name">${r.nome}</div>
+        <div class="roster-card-sub">${r.razza||''} ${r.classe} · Liv. ${r.livello}</div>
+        ${pfTxt ? `<div class="roster-card-pf">${pfTxt}</div>` : ''}
+      </div>
+      <button class="roster-card-del" onclick="rosterDelete('${r.id}',event)">✕</button>`;
+    card.onclick = (e) => { if (e.target.classList.contains('roster-card-del')) return; rosterEnter(r.id); };
+    list.appendChild(card);
+  });
+}
+
+function rosterEnter(id) {
+  loadState(id);
+  curSection = S.section || 0;
+  el('rosterScreen').classList.add('hidden');
+  el('app').style.display = '';
+  initCarousel();
+  if (!C.nome) { openSetup(); } else { renderAll(); }
+}
+
+function rosterNew() {
+  const id = genId();
+  const roster = getRoster();
+  roster.push({id, nome:'', classe:'Guerriero', livello:1, razza:'', pf:0, pfMax:0});
+  saveRoster(roster);
+  currentCharId = id;
+  S = DEF_STATE(); C = S.char;
+  el('rosterScreen').classList.add('hidden');
+  el('app').style.display = '';
+  initCarousel();
+  openSetup();
+}
+
+function rosterDelete(id, e) {
+  e.stopPropagation();
+  if (!confirm('Eliminare questo personaggio?')) return;
+  const roster = getRoster().filter(r => r.id !== id);
+  saveRoster(roster);
+  localStorage.removeItem(SKEY_CHAR + id);
+  renderRoster();
+}
+
+function goToRoster() {
+  if (noteArea) S.note = noteArea.value;
+  saveState();
+  el('app').style.display = 'none';
+  el('rosterScreen').classList.remove('hidden');
+  renderRoster();
+}
+
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', () => {
-  const hasData = loadState();
-  curSection = S.section || 0;
-  initCarousel();
-  if (!hasData || !C.nome) {
-    openSetup();
-  } else {
-    renderAll();
-  }
+  showRoster();
+  // initCarousel verrà chiamato da rosterEnter/rosterNew
 });
 
 // ── SERVICE WORKER ──
